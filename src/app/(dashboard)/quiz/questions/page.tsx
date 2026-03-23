@@ -125,7 +125,7 @@ export default function QuestionsPage() {
   const loadLessonModules = useCallback(async () => {
     try {
       const mods = await modulesApi.list()
-      setLessonModules(mods)
+      setLessonModules(mods as LearningModule[])
     } catch { /* silently fail */ }
   }, [])
 
