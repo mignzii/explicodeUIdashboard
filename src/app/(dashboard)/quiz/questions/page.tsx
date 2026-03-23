@@ -138,7 +138,7 @@ export default function QuestionsPage() {
     setLoadingLessonCats(true)
     try {
       const cats = await categoriesApi.list(moduleId)
-      setLessonCategories(cats)
+      setLessonCategories(cats as Category[])
     } catch { setLessonCategories([]) }
     finally { setLoadingLessonCats(false) }
   }
@@ -151,7 +151,7 @@ export default function QuestionsPage() {
     setLoadingLessons(true)
     try {
       const lessons = await lessonsApi.list(categoryId)
-      setLessonList(lessons)
+      setLessonList(lessons as Lesson[])
     } catch { setLessonList([]) }
     finally { setLoadingLessons(false) }
   }
@@ -389,12 +389,12 @@ export default function QuestionsPage() {
       header: 'Média',
       cell: ({ row }) => (
         <div className="flex gap-1">
-          {row.original.imageUrl && <ImageIcon className="w-4 h-4 text-gray-400" title="Image" />}
+          {row.original.imageUrl && <ImageIcon className="w-4 h-4 text-gray-400" />}
           {row.original.audioUrls && Object.keys(row.original.audioUrls).length > 0 && (
-            <Volume2 className="w-4 h-4 text-gray-400" title="Audio" />
+            <Volume2 className="w-4 h-4 text-gray-400" />
           )}
           {row.original.lessonId && (
-            <BookOpen className="w-4 h-4 text-indigo-400" title="Leçon liée" />
+            <BookOpen className="w-4 h-4 text-indigo-400" />
           )}
         </div>
       ),
