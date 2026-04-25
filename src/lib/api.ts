@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
 
-const API_BASE_URL = 'http://38.180.154.173:3000/api/v1'
+const API_BASE_URL = 'https://38.180.154.173.nip.io/api/v1'
 
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
