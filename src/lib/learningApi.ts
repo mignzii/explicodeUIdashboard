@@ -37,6 +37,7 @@ export interface CreateSubLessonPayload {
   title: string
   order?: number
   status?: 'locked' | 'in_progress' | 'completed'
+  imageUrl?: string
 }
 
 export interface CreateContentPayload {
@@ -96,6 +97,19 @@ export const subLessonsApi = {
   create: async (data: CreateSubLessonPayload) => unwrap(await api.post('/sub-lessons', data)),
   update: async (id: string, data: Partial<CreateSubLessonPayload>) => unwrap(await api.patch(`/sub-lessons/${id}`, data)),
   delete: async (id: string) => api.delete(`/sub-lessons/${id}`),
+}
+
+// ── Uploads ───────────────────────────────────────────────────────────────
+
+export const uploadsApi = {
+  lessonImage: async (file: File): Promise<{ url: string }> => {
+    const form = new FormData()
+    form.append('image', file)
+    const res = await api.post('/uploads/lesson-image', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return (res.data?.data ?? res.data) as { url: string }
+  },
 }
 
 // ── Content ───────────────────────────────────────────────────────────────

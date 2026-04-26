@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Plus, Pencil, Trash2, Lock, Unlock, BookOpen, Loader2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Lock, Unlock, BookOpen, Loader2, Eye } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { LearningModule, CreateModulePayload } from '@/types'
 import { modulesApi } from '@/lib/learningApi'
+import { ModulePreviewModal } from '@/components/ModulePreviewModal'
 import toast from 'react-hot-toast'
 
 interface ModuleForm {
@@ -45,6 +46,8 @@ export default function ModulesPage() {
   const [editingModule, setEditingModule] = useState<LearningModule | null>(null)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState<ModuleForm>(DEFAULT_FORM)
+  const [previewId, setPreviewId] = useState<string | null>(null)
+  const previewMod = modules.find(m => m.id === previewId)
 
   useEffect(() => {
     loadModules()
@@ -167,6 +170,9 @@ export default function ModulesPage() {
                       <BookOpen className="w-3 h-3" /> Contenu
                     </Button>
                   </Link>
+                  <Button variant="ghost" size="icon-sm" title="Prévisualiser" onClick={() => setPreviewId(mod.id)}>
+                    <Eye className="w-3.5 h-3.5 text-purple-500" />
+                  </Button>
                   <Button variant="ghost" size="icon-sm" onClick={() => openEdit(mod)}>
                     <Pencil className="w-3.5 h-3.5" />
                   </Button>
@@ -260,6 +266,17 @@ export default function ModulesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {previewMod && (
+        <ModulePreviewModal
+          moduleId={previewMod.id}
+          moduleName={previewMod.title}
+          moduleIcon={previewMod.icon ?? '📖'}
+          moduleColor={previewMod.color}
+          open={!!previewId}
+          onClose={() => setPreviewId(null)}
+        />
+      )}
     </div>
   )
 }

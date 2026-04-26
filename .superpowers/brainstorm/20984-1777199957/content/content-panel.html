@@ -1,0 +1,153 @@
+<h2>Affichage du contenu dans le panneau droit</h2>
+<p class="subtitle">Le contenu existe en 5 langues (FR, WO, PU, SE, JO) — comment le présenter ?</p>
+
+<div class="cards">
+
+  <!-- Option A: Onglets de langue -->
+  <div class="card" data-choice="lang-tabs" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a;border-radius:8px;padding:12px;font-family:system-ui;min-height:200px">
+      <!-- Lang tabs -->
+      <div style="display:flex;gap:3px;margin-bottom:10px;align-items:center">
+        <span style="color:#64748b;font-size:9px;margin-right:4px">Langue :</span>
+        <div style="background:#1B4FD8;padding:3px 10px;border-radius:6px;color:#fff;font-size:9px;font-weight:600">🇫🇷 FR</div>
+        <div style="padding:3px 10px;border-radius:6px;color:#64748b;font-size:9px;border:1px solid #334155">WO</div>
+        <div style="padding:3px 10px;border-radius:6px;color:#64748b;font-size:9px;border:1px solid #334155">PU</div>
+        <div style="padding:3px 10px;border-radius:6px;color:#64748b;font-size:9px;border:1px solid #334155">SE</div>
+        <div style="padding:3px 10px;border-radius:6px;color:#64748b;font-size:9px;border:1px solid #334155">JO</div>
+        <div style="margin-left:auto;background:#1e293b;border-radius:4px;padding:2px 8px;color:#94a3b8;font-size:8px">⏱ 3 min</div>
+      </div>
+
+      <!-- Sous-leçon title + image -->
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+        <div style="background:#1e293b;border-radius:8px;width:70px;height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center">
+          <span style="font-size:22px">🚸</span>
+        </div>
+        <div>
+          <div style="color:#64748b;font-size:8px;margin-bottom:2px">Sous-leçon 01</div>
+          <div style="color:#f1f5f9;font-size:11px;font-weight:700;line-height:1.3">Introduction aux panneaux de danger</div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div style="color:#94a3b8;font-size:9px;line-height:1.6;margin-bottom:8px">
+        Les panneaux de danger ont une forme triangulaire avec une bordure rouge vif. Ils avertissent les conducteurs d'un danger potentiel sur la route.
+      </div>
+
+      <!-- Bullets -->
+      <div style="margin-bottom:8px">
+        <div style="color:#64748b;font-size:8px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Points clés</div>
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+          <span style="width:5px;height:5px;background:#1B4FD8;border-radius:50%;flex-shrink:0"></span>
+          <span style="color:#cbd5e1;font-size:8px">Forme triangulaire = danger</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+          <span style="width:5px;height:5px;background:#1B4FD8;border-radius:50%;flex-shrink:0"></span>
+          <span style="color:#cbd5e1;font-size:8px">Bordure rouge obligatoire</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px">
+          <span style="width:5px;height:5px;background:#1B4FD8;border-radius:50%;flex-shrink:0"></span>
+          <span style="color:#cbd5e1;font-size:8px">Fond blanc ou jaune selon pays</span>
+        </div>
+      </div>
+
+      <!-- Did you know -->
+      <div style="background:#1e293b;border-left:3px solid #fbbf24;border-radius:0 6px 6px 0;padding:6px 8px">
+        <div style="color:#fbbf24;font-size:8px;font-weight:600;margin-bottom:2px">💡 Le saviez-vous ?</div>
+        <div style="color:#94a3b8;font-size:8px;line-height:1.4">En France, on compte plus de 500 panneaux officiels différents homologués par la norme européenne.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Onglets de langue en haut du contenu</h3>
+      <p>Un seul contenu affiché à la fois. Tu bascules entre FR / WO / PU / SE / JO via des onglets. Clair, lisible, pas surchargé.</p>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Lecture fluide</span>
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Pas de surcharge</span>
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Mon recom.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option B: Tout en scroll -->
+  <div class="card" data-choice="all-scroll" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a;border-radius:8px;padding:12px;font-family:system-ui;min-height:200px;overflow:hidden">
+      <!-- Title -->
+      <div style="color:#f1f5f9;font-size:10px;font-weight:700;margin-bottom:8px">Introduction aux panneaux de danger</div>
+
+      <!-- FR block -->
+      <div style="background:#1e293b;border-radius:6px;padding:7px;margin-bottom:5px;border-left:3px solid #1B4FD8">
+        <div style="color:#60a5fa;font-size:8px;font-weight:700;margin-bottom:3px">🇫🇷 Français</div>
+        <div style="color:#94a3b8;font-size:8px;line-height:1.4">Les panneaux de danger ont une forme triangulaire...</div>
+      </div>
+
+      <!-- WO block -->
+      <div style="background:#1e293b;border-radius:6px;padding:7px;margin-bottom:5px;border-left:3px solid #10b981">
+        <div style="color:#34d399;font-size:8px;font-weight:700;margin-bottom:3px">🟢 Wolof</div>
+        <div style="color:#94a3b8;font-size:8px;line-height:1.4">Ci kanam dëkk bi, seen panno...</div>
+      </div>
+
+      <!-- PU block (faded - no content) -->
+      <div style="background:#1e293b;border-radius:6px;padding:7px;border-left:3px solid #334155;opacity:0.5">
+        <div style="color:#64748b;font-size:8px;font-weight:700;margin-bottom:3px">PU — Aucun contenu</div>
+        <div style="color:#475569;font-size:8px;font-style:italic">Non renseigné</div>
+      </div>
+
+      <div style="color:#475569;font-size:8px;text-align:center;margin-top:6px">↓ SE, JO...</div>
+    </div>
+    <div class="card-body">
+      <h3>B — Toutes les langues en scroll vertical</h3>
+      <p>Chaque langue est un bloc l'un sous l'autre. Utile pour comparer les traductions ou voir d'un coup quelles langues sont renseignées ou vides.</p>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Comparaison facile</span>
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Lacunes visibles</span>
+        <span style="background:#fef9c3;color:#713f12;font-size:10px;padding:2px 8px;border-radius:20px">~ Long à scroller</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option C: Phone mockup -->
+  <div class="card" data-choice="phone" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a;border-radius:8px;padding:12px;font-family:system-ui;display:flex;justify-content:center;min-height:200px;align-items:center">
+      <!-- Phone frame -->
+      <div style="width:110px;background:#1e293b;border-radius:16px;padding:8px 6px;border:2px solid #334155;position:relative">
+        <!-- Notch -->
+        <div style="width:30px;height:4px;background:#0f172a;border-radius:4px;margin:0 auto 6px"></div>
+        <!-- Screen content -->
+        <div style="background:#0f172a;border-radius:8px;padding:8px;overflow:hidden">
+          <div style="background:#1e293b;border-radius:6px;height:35px;margin-bottom:6px;display:flex;align-items:center;justify-content:center">
+            <span style="font-size:18px">🚸</span>
+          </div>
+          <div style="color:#f1f5f9;font-size:8px;font-weight:700;margin-bottom:4px;text-align:center">Panneaux danger</div>
+          <div style="color:#94a3b8;font-size:6.5px;line-height:1.4;margin-bottom:4px">Les panneaux triangulaires signalent un danger...</div>
+          <div style="display:flex;gap:2px;flex-wrap:wrap;margin-bottom:4px">
+            <div style="background:#1e293b;border-radius:2px;padding:1px 4px;color:#60a5fa;font-size:6px">• Forme triangle</div>
+            <div style="background:#1e293b;border-radius:2px;padding:1px 4px;color:#60a5fa;font-size:6px">• Bordure rouge</div>
+          </div>
+          <div style="background:#1e293b;border-radius:4px;padding:4px;border-left:2px solid #fbbf24">
+            <div style="color:#fbbf24;font-size:6px">💡 Le saviez-vous ?</div>
+            <div style="color:#94a3b8;font-size:6px;line-height:1.3">500 panneaux officiels...</div>
+          </div>
+        </div>
+        <!-- Home bar -->
+        <div style="width:30px;height:3px;background:#334155;border-radius:4px;margin:6px auto 0"></div>
+      </div>
+      <!-- Lang pills -->
+      <div style="margin-left:10px;display:flex;flex-direction:column;gap:4px">
+        <div style="background:#1B4FD8;padding:3px 8px;border-radius:4px;color:#fff;font-size:8px">🇫🇷 FR</div>
+        <div style="background:#1e293b;padding:3px 8px;border-radius:4px;color:#64748b;font-size:8px;border:1px solid #334155">WO</div>
+        <div style="background:#1e293b;padding:3px 8px;border-radius:4px;color:#64748b;font-size:8px;border:1px solid #334155">PU</div>
+        <div style="background:#1e293b;padding:3px 8px;border-radius:4px;color:#64748b;font-size:8px;border:1px solid #334155">SE</div>
+        <div style="background:#1e293b;padding:3px 8px;border-radius:4px;color:#64748b;font-size:8px;border:1px solid #334155">JO</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Aperçu "téléphone" fidèle à l'app mobile</h3>
+      <p>Le panneau droit simule l'écran mobile de l'apprenant. Tu vois exactement comment ce cours s'affichera dans l'app Flutter, avec sélecteur de langue à côté.</p>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Fidèle à l'app</span>
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Validation visuelle</span>
+        <span style="background:#fef9c3;color:#713f12;font-size:10px;padding:2px 8px;border-radius:20px">~ Plus complexe</span>
+      </div>
+    </div>
+  </div>
+
+</div>

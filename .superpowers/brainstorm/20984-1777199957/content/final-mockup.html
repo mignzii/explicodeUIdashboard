@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup final — Prévisualisation module</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0f1a; font-family: 'Inter', system-ui, sans-serif; color: #f1f5f9; padding: 20px; }
+
+  .label-top { color: #64748b; font-size: 11px; text-align: center; margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  /* ── Trigger button context ── */
+  .trigger-ctx { display: flex; align-items: center; gap: 12px; background: #1e293b; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; border: 1px solid #334155; }
+  .module-card-mini { display: flex; align-items: center; gap: 10px; flex: 1; }
+  .mod-icon { width: 40px; height: 40px; border-radius: 10px; background: #529f1420; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .mod-info h4 { font-size: 13px; font-weight: 600; color: #f1f5f9; }
+  .mod-info p  { font-size: 11px; color: #64748b; margin-top: 1px; }
+  .btn-preview { background: #1B4FD8; color: white; border: none; border-radius: 7px; padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .btn-preview svg { width: 14px; height: 14px; }
+
+  /* ── Modal backdrop ── */
+  .modal-backdrop { background: rgba(0,0,0,0.7); border-radius: 12px; padding: 12px; }
+
+  /* ── Modal container ── */
+  .modal { background: #0f172a; border-radius: 12px; border: 1px solid #1e293b; display: flex; flex-direction: column; height: 640px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.6); }
+
+  /* ── Modal header ── */
+  .modal-header { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #1e293b; flex-shrink: 0; }
+  .mod-header-icon { width: 36px; height: 36px; border-radius: 9px; background: #529f1430; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .mod-header-info { flex: 1; }
+  .mod-header-info h3 { font-size: 14px; font-weight: 700; color: #f1f5f9; }
+  .mod-header-meta { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+  .meta-pill { background: #1e293b; color: #64748b; font-size: 10px; padding: 2px 8px; border-radius: 20px; }
+  .meta-pill.green { background: #d1fae510; color: #34d399; }
+  .close-btn { width: 28px; height: 28px; border-radius: 7px; background: #1e293b; border: none; color: #64748b; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .close-btn:hover { background: #ef444420; color: #f87171; }
+
+  /* ── Modal body ── */
+  .modal-body { display: grid; grid-template-columns: 280px 1fr; flex: 1; overflow: hidden; }
+
+  /* ── Sidebar ── */
+  .sidebar { border-right: 1px solid #1e293b; overflow-y: auto; padding: 12px 8px; }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+  /* Category row */
+  .cat-row { display: flex; align-items: center; gap: 7px; padding: 7px 8px; border-radius: 7px; cursor: pointer; margin-bottom: 2px; transition: background 0.15s; }
+  .cat-row:hover { background: #1e293b; }
+  .cat-row.open { background: #1e293b40; }
+  .cat-chevron { font-size: 9px; color: #64748b; transition: transform 0.2s; width: 10px; flex-shrink: 0; }
+  .cat-chevron.down { transform: rotate(90deg); color: #94a3b8; }
+  .cat-icon { font-size: 13px; }
+  .cat-title { font-size: 12px; font-weight: 600; color: #e2e8f0; flex: 1; }
+  .cat-count { font-size: 9px; color: #64748b; background: #1e293b; padding: 1px 6px; border-radius: 10px; }
+
+  /* Lesson row */
+  .lesson-section { padding-left: 16px; margin-bottom: 4px; }
+  .lesson-row { display: flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 6px; cursor: pointer; margin-bottom: 1px; transition: background 0.15s; }
+  .lesson-row:hover { background: #1e293b40; }
+  .lesson-row.open { background: #1e293b60; }
+  .lesson-icon { font-size: 12px; }
+  .lesson-title { font-size: 11px; font-weight: 500; color: #94a3b8; flex: 1; }
+  .lesson-chevron { font-size: 8px; color: #475569; transition: transform 0.2s; }
+  .lesson-chevron.down { transform: rotate(90deg); }
+
+  /* Sub-lesson rows */
+  .sublesson-section { padding-left: 28px; }
+  .sublesson-row { display: flex; align-items: center; gap: 7px; padding: 5px 8px; border-radius: 6px; cursor: pointer; margin-bottom: 1px; transition: all 0.15s; }
+  .sublesson-row:hover { background: #1e293b60; }
+  .sublesson-row.active { background: #1B4FD820; border-left: 2px solid #1B4FD8; }
+  .sublesson-num { font-size: 9px; color: #475569; width: 18px; text-align: center; font-weight: 600; flex-shrink: 0; }
+  .sublesson-row.active .sublesson-num { color: #93c5fd; }
+  .sublesson-title { font-size: 10px; color: #64748b; flex: 1; }
+  .sublesson-row.active .sublesson-title { color: #bfdbfe; font-weight: 500; }
+  .status-dot { width: 5px; height: 5px; border-radius: 50%; background: #334155; flex-shrink: 0; }
+  .status-dot.done { background: #10b981; }
+  .status-dot.active { background: #1B4FD8; }
+
+  /* ── Content panel ── */
+  .content-panel { display: flex; flex-direction: column; overflow: hidden; background: #0d1424; }
+
+  /* Lang selector */
+  .lang-bar { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid #1e293b; flex-shrink: 0; }
+  .lang-label { font-size: 10px; color: #475569; font-weight: 500; margin-right: 2px; }
+  .lang-btn { padding: 3px 10px; border-radius: 6px; font-size: 10px; font-weight: 600; cursor: pointer; border: 1px solid #1e293b; background: transparent; color: #475569; transition: all 0.15s; }
+  .lang-btn.active { background: #1B4FD8; border-color: #1B4FD8; color: #fff; }
+  .lang-btn.has-content { color: #94a3b8; border-color: #334155; }
+  .lang-btn.no-content { color: #334155; border-color: #1e293b; font-style: italic; }
+  .read-time { margin-left: auto; display: flex; align-items: center; gap: 4px; color: #475569; font-size: 10px; }
+
+  /* Phone container */
+  .phone-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; background: radial-gradient(ellipse at 50% 30%, #1B4FD808 0%, transparent 70%); }
+
+  /* Phone frame */
+  .phone { width: 280px; background: #1c2333; border-radius: 32px; padding: 12px 10px; border: 2px solid #334155; box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05); position: relative; }
+  .phone::before { content: ''; position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 60px; height: 5px; background: #0f172a; border-radius: 4px; z-index: 1; }
+  .phone-screen { background: #0f172a; border-radius: 22px; overflow: hidden; padding-bottom: 8px; margin-top: 20px; }
+
+  /* Phone status bar */
+  .phone-statusbar { display: flex; justify-content: space-between; align-items: center; padding: 6px 14px 4px; }
+  .phone-statusbar span { font-size: 8px; color: #64748b; }
+
+  /* Phone header */
+  .phone-header { display: flex; align-items: center; gap: 8px; padding: 6px 14px 10px; border-bottom: 1px solid #1e293b20; }
+  .phone-back { color: #1B4FD8; font-size: 10px; }
+  .phone-header-title { font-size: 11px; font-weight: 700; color: #f1f5f9; flex: 1; text-align: center; }
+  .phone-more { color: #475569; font-size: 14px; }
+
+  /* Phone content */
+  .phone-content { padding: 12px 14px; }
+
+  .phone-image { width: 100%; height: 120px; background: linear-gradient(135deg, #1e2d45, #162032); border-radius: 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .phone-image::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 60%, #0f172a40); }
+  .phone-image-emoji { font-size: 48px; }
+
+  .phone-subtitle { font-size: 9px; color: #1B4FD8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .phone-title { font-size: 14px; font-weight: 700; color: #f1f5f9; line-height: 1.35; margin-bottom: 10px; }
+
+  .phone-desc { font-size: 10px; color: #94a3b8; line-height: 1.7; margin-bottom: 12px; }
+
+  .phone-section-label { font-size: 9px; color: #475569; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 6px; }
+
+  .phone-bullets { margin-bottom: 12px; }
+  .phone-bullet { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 5px; }
+  .phone-bullet-dot { width: 5px; height: 5px; background: #1B4FD8; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .phone-bullet-text { font-size: 10px; color: #cbd5e1; line-height: 1.5; }
+
+  .phone-didyouknow { background: linear-gradient(135deg, #1e293b, #162032); border-radius: 10px; padding: 10px 12px; border-left: 3px solid #fbbf24; margin-bottom: 10px; }
+  .phone-dyk-title { font-size: 9px; color: #fbbf24; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+  .phone-dyk-text { font-size: 9px; color: #94a3b8; line-height: 1.5; }
+
+  .phone-audio { display: flex; align-items: center; gap: 8px; background: #1e293b; border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; }
+  .play-btn { width: 24px; height: 24px; background: #1B4FD8; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .play-btn span { font-size: 8px; margin-left: 1px; }
+  .audio-info { flex: 1; }
+  .audio-info p { font-size: 9px; color: #94a3b8; }
+  .audio-info span { font-size: 8px; color: #475569; }
+  .audio-bar { height: 3px; background: #334155; border-radius: 2px; margin-top: 4px; position: relative; }
+  .audio-bar::after { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 40%; background: #1B4FD8; border-radius: 2px; }
+
+  /* Home bar */
+  .phone-homebar { width: 60px; height: 4px; background: #334155; border-radius: 4px; margin: 12px auto 0; }
+
+  /* Empty state */
+  .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #334155; }
+  .empty-state svg { width: 40px; height: 40px; opacity: 0.4; }
+  .empty-state p { font-size: 12px; }
+
+  /* Legend */
+  .legend { display: flex; gap: 16px; padding: 8px 16px; border-top: 1px solid #1e293b; background: #0a0f1a; flex-shrink: 0; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 9px; color: #475569; }
+  .legend-dot { width: 6px; height: 6px; border-radius: 50%; }
+</style>
+</head>
+<body>
+
+<p class="label-top">Mockup final — Prévisualisation complète d'un module</p>
+
+<!-- Trigger context -->
+<div class="trigger-ctx">
+  <div class="module-card-mini">
+    <div class="mod-icon">🚦</div>
+    <div class="mod-info">
+      <h4>Signalisation routière</h4>
+      <p>3 catégories · 12 leçons · 48 sous-leçons</p>
+    </div>
+  </div>
+  <button class="btn-preview">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    Prévisualiser
+  </button>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop">
+  <div class="modal">
+
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="mod-header-icon">🚦</div>
+      <div class="mod-header-info">
+        <h3>Signalisation routière</h3>
+        <div class="mod-header-meta">
+          <span class="meta-pill">3 catégories</span>
+          <span class="meta-pill">12 leçons</span>
+          <span class="meta-pill">48 sous-leçons</span>
+          <span class="meta-pill green">● Déverrouillé</span>
+        </div>
+      </div>
+      <button class="close-btn">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+
+      <!-- ── Sidebar accordéon ── -->
+      <div class="sidebar">
+
+        <!-- Catégorie 1 ouverte -->
+        <div class="cat-row open">
+          <span class="cat-chevron down">▶</span>
+          <span class="cat-icon">📚</span>
+          <span class="cat-title">Panneaux</span>
+          <span class="cat-count">5</span>
+        </div>
+
+        <div class="lesson-section">
+          <!-- Leçon 1 ouverte -->
+          <div class="lesson-row open">
+            <span class="cat-chevron down" style="font-size:8px">▶</span>
+            <span class="lesson-icon">📖</span>
+            <span class="lesson-title">Panneaux de danger</span>
+            <span class="lesson-chevron down">▶</span>
+          </div>
+          <div class="sublesson-section">
+            <div class="sublesson-row active">
+              <span class="sublesson-num">01</span>
+              <span class="sublesson-title">Introduction</span>
+              <span class="status-dot active"></span>
+            </div>
+            <div class="sublesson-row">
+              <span class="sublesson-num">02</span>
+              <span class="sublesson-title">Les formes et couleurs</span>
+              <span class="status-dot done"></span>
+            </div>
+            <div class="sublesson-row">
+              <span class="sublesson-num">03</span>
+              <span class="sublesson-title">Exemples pratiques</span>
+              <span class="status-dot"></span>
+            </div>
+          </div>
+
+          <!-- Leçon 2 fermée -->
+          <div class="lesson-row" style="margin-top:4px">
+            <span class="cat-chevron" style="font-size:8px">▶</span>
+            <span class="lesson-icon">🚧</span>
+            <span class="lesson-title">Panneaux d'interdiction</span>
+            <span class="lesson-chevron">▶</span>
+          </div>
+
+          <!-- Leçon 3 fermée -->
+          <div class="lesson-row">
+            <span class="cat-chevron" style="font-size:8px">▶</span>
+            <span class="lesson-icon">🔵</span>
+            <span class="lesson-title">Panneaux d'obligation</span>
+            <span class="lesson-chevron">▶</span>
+          </div>
+        </div>
+
+        <!-- Catégorie 2 fermée -->
+        <div class="cat-row" style="margin-top:4px">
+          <span class="cat-chevron">▶</span>
+          <span class="cat-icon">🔄</span>
+          <span class="cat-title">Priorité</span>
+          <span class="cat-count">4</span>
+        </div>
+
+        <!-- Catégorie 3 fermée -->
+        <div class="cat-row" style="margin-top:4px">
+          <span class="cat-chevron">▶</span>
+          <span class="cat-icon">⚠️</span>
+          <span class="cat-title">Urgences</span>
+          <span class="cat-count">3</span>
+        </div>
+
+      </div>
+
+      <!-- ── Panneau contenu ── -->
+      <div class="content-panel">
+
+        <!-- Lang bar -->
+        <div class="lang-bar">
+          <span class="lang-label">Langue</span>
+          <button class="lang-btn active">🇫🇷 FR</button>
+          <button class="lang-btn has-content">WO</button>
+          <button class="lang-btn has-content">PU</button>
+          <button class="lang-btn no-content">SE</button>
+          <button class="lang-btn no-content">JO</button>
+          <div class="read-time">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            3 min
+          </div>
+        </div>
+
+        <!-- Phone -->
+        <div class="phone-container">
+          <div class="phone">
+            <div class="phone-screen">
+
+              <!-- Status bar -->
+              <div class="phone-statusbar">
+                <span>9:41</span>
+                <span>●●●●  WiFi  🔋</span>
+              </div>
+
+              <!-- App header -->
+              <div class="phone-header">
+                <span class="phone-back">← Leçon</span>
+                <span class="phone-header-title">Panneaux de danger</span>
+                <span class="phone-more">···</span>
+              </div>
+
+              <!-- Content -->
+              <div class="phone-content">
+
+                <!-- Image -->
+                <div class="phone-image">
+                  <span class="phone-image-emoji">🚸</span>
+                </div>
+
+                <!-- Subtitle + title -->
+                <div class="phone-subtitle">Sous-leçon 01</div>
+                <div class="phone-title">Introduction aux panneaux de danger</div>
+
+                <!-- Description -->
+                <div class="phone-section-label">Description</div>
+                <div class="phone-desc">
+                  Les panneaux de danger ont une forme triangulaire avec une bordure rouge vif. Ils avertissent les conducteurs d'un danger potentiel sur la route à venir.
+                </div>
+
+                <!-- Bullets -->
+                <div class="phone-section-label">Points clés</div>
+                <div class="phone-bullets">
+                  <div class="phone-bullet">
+                    <div class="phone-bullet-dot"></div>
+                    <div class="phone-bullet-text">Forme triangulaire = danger imminent</div>
+                  </div>
+                  <div class="phone-bullet">
+                    <div class="phone-bullet-dot"></div>
+                    <div class="phone-bullet-text">Bordure rouge obligatoire selon norme CE</div>
+                  </div>
+                  <div class="phone-bullet">
+                    <div class="phone-bullet-dot"></div>
+                    <div class="phone-bullet-text">Fond blanc ou jaune selon le pays</div>
+                  </div>
+                </div>
+
+                <!-- Did you know -->
+                <div class="phone-didyouknow">
+                  <div class="phone-dyk-title">💡 Le saviez-vous ?</div>
+                  <div class="phone-dyk-text">En France, on compte plus de 500 panneaux officiels homologués par la norme européenne CE.</div>
+                </div>
+
+                <!-- Audio -->
+                <div class="phone-section-label">Audio</div>
+                <div class="phone-audio">
+                  <div class="play-btn"><span>▶</span></div>
+                  <div class="audio-info">
+                    <p>Écouter la leçon</p>
+                    <span>Français · 2:45</span>
+                    <div class="audio-bar"></div>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="phone-homebar"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div> Contenu renseigné</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#475569"></div> Contenu vide</div>
+          <div class="legend-item" style="margin-left:auto;color:#334155;font-style:italic">Cliquer sur une sous-leçon dans la sidebar pour la prévisualiser</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft, Plus, Pencil, Trash2, Lock, Unlock, ChevronRight,
-  ChevronDown, Loader2, FolderOpen, BookOpen, List, FileText, X, Video, Headphones
+  ChevronDown, Loader2, FolderOpen, BookOpen, List, FileText, X, Video, Headphones,
+  ImageIcon, Upload, Eye,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,7 +19,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { LearningModule, Category, Lesson, SubLesson, LessonContent } from '@/types'
-import { modulesApi, categoriesApi, lessonsApi, subLessonsApi, contentApi } from '@/lib/learningApi'
+import { modulesApi, categoriesApi, lessonsApi, subLessonsApi, contentApi, uploadsApi } from '@/lib/learningApi'
+import { ModulePreviewModal } from '@/components/ModulePreviewModal'
 import toast from 'react-hot-toast'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -57,6 +59,7 @@ export default function ModuleDetailPage() {
   const [expandedLesson, setExpandedLesson] = useState<string | null>(null)
   const [subLessonsMap, setSubLessonsMap] = useState<Record<string, SubLesson[]>>({})
   const [saving, setSaving] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
 
   // ── États modaux ──────────────────────────────────────────────────────────
 
@@ -80,6 +83,7 @@ export default function ModuleDetailPage() {
     status: 'locked' as 'locked' | 'in_progress' | 'completed',
     imageUrl: '',
   })
+  const [uploadingImage, setUploadingImage] = useState(false)
 
   const [contentModal, setContentModal] = useState(false)
   const [contentSubLesson, setContentSubLesson] = useState<SubLesson | null>(null)
@@ -226,13 +230,31 @@ export default function ModuleDetailPage() {
     setSubLessonParentId(lessonId); setEditingSub(null)
     const n = (subLessonsMap[lessonId] ?? []).length
     setSubForm({ title: '', number: n + 1, order: n + 1, status: 'locked', imageUrl: '' })
+    setUploadingImage(false)
     setSubModal(true)
   }
 
   const openEditSub = (sub: SubLesson) => {
     setSubLessonParentId(sub.lessonId); setEditingSub(sub)
     setSubForm({ title: sub.title, number: sub.number, order: sub.order, status: sub.status, imageUrl: sub.imageUrl ?? '' })
+    setUploadingImage(false)
     setSubModal(true)
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingImage(true)
+    try {
+      const { url } = await uploadsApi.lessonImage(file)
+      setSubForm(f => ({ ...f, imageUrl: url }))
+      toast.success('Image uploadée')
+    } catch {
+      toast.error("Échec de l'upload d'image")
+    } finally {
+      setUploadingImage(false)
+      e.target.value = ''
+    }
   }
 
   const saveSub = async () => {
@@ -353,7 +375,7 @@ export default function ModuleDetailPage() {
               {module.icon}
             </div>
             <div className="flex-1">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <h2 className="text-2xl font-bold text-gray-900">{module.title}</h2>
                 <Badge variant={module.isLocked ? 'warning' : 'success'}>
                   {module.isLocked
@@ -361,6 +383,13 @@ export default function ModuleDetailPage() {
                     : <><Unlock className="w-3 h-3 mr-1" />Déverrouillé</>
                   }
                 </Badge>
+                <Button
+                  variant="outline" size="sm"
+                  onClick={() => setPreviewOpen(true)}
+                  className="gap-1.5 text-purple-600 border-purple-200 hover:bg-purple-50 hover:border-purple-300"
+                >
+                  <Eye className="w-3.5 h-3.5" /> Aperçu
+                </Button>
               </div>
               <div className="flex gap-4 mt-2 text-sm text-gray-500">
                 <span>{categories.length} catégorie{categories.length !== 1 ? 's' : ''}</span>
@@ -682,15 +711,43 @@ export default function ModuleDetailPage() {
               </select>
             </div>
             <div>
-              <Label>Image (URL)</Label>
-              <Input
-                value={subForm.imageUrl}
-                onChange={e => setSubForm(f => ({ ...f, imageUrl: e.target.value }))}
-                placeholder="https://exemple.com/image.jpg"
-                className="mt-1"
-              />
-              {subForm.imageUrl && (
-                <img src={subForm.imageUrl} alt="preview" className="mt-2 rounded-lg w-full h-32 object-cover" />
+              <Label className="flex items-center gap-1.5">
+                <ImageIcon className="w-4 h-4 text-gray-400" /> Image de la sous-leçon
+              </Label>
+              {subForm.imageUrl ? (
+                <div className="mt-2 relative group">
+                  <img
+                    src={subForm.imageUrl}
+                    alt="aperçu"
+                    className="rounded-lg w-full h-36 object-cover border"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setSubForm(f => ({ ...f, imageUrl: '' }))}
+                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <label className="mt-2 flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
+                  {uploadingImage ? (
+                    <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                  ) : (
+                    <>
+                      <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                      <span className="text-xs text-gray-500">Cliquez pour choisir une image</span>
+                      <span className="text-xs text-gray-400 mt-0.5">JPEG, PNG, WebP, GIF — max 5 Mo</span>
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    disabled={uploadingImage}
+                    onChange={handleImageUpload}
+                  />
+                </label>
               )}
             </div>
           </div>
@@ -852,6 +909,17 @@ export default function ModuleDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {module && (
+        <ModulePreviewModal
+          moduleId={module.id}
+          moduleName={module.title}
+          moduleIcon={module.icon ?? '📖'}
+          moduleColor={module.color}
+          open={previewOpen}
+          onClose={() => setPreviewOpen(false)}
+        />
+      )}
     </div>
   )
 }

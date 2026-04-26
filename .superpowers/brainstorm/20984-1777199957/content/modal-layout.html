@@ -1,0 +1,194 @@
+<h2>Layout interne de la modale de prévisualisation</h2>
+<p class="subtitle">Comment organiser la navigation et le contenu dans la modale ?</p>
+
+<div class="cards">
+
+  <!-- Option A: 3 colonnes -->
+  <div class="card" data-choice="three-col" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#1e293b;border-radius:8px;padding:12px;font-family:system-ui">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #334155;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="background:#529f1420;padding:4px 8px;border-radius:6px;font-size:16px">🚦</span>
+          <span style="color:#f1f5f9;font-size:11px;font-weight:700">Signalisation</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <span style="background:#334155;color:#94a3b8;font-size:9px;padding:2px 8px;border-radius:4px">3 catégories</span>
+          <span style="color:#64748b;font-size:14px">×</span>
+        </div>
+      </div>
+      <!-- 3 panels -->
+      <div style="display:grid;grid-template-columns:100px 130px 1fr;gap:6px;height:130px">
+        <!-- Catégories -->
+        <div style="background:#0f172a;border-radius:6px;padding:8px">
+          <div style="color:#64748b;font-size:8px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Catégories</div>
+          <div style="background:#1B4FD8;border-radius:4px;padding:4px 6px;color:#fff;font-size:9px;margin-bottom:3px">📚 Panneaux</div>
+          <div style="padding:4px 6px;color:#64748b;font-size:9px;margin-bottom:3px">🔄 Priorité</div>
+          <div style="padding:4px 6px;color:#64748b;font-size:9px">⚠️ Urgence</div>
+        </div>
+        <!-- Leçons + sous-leçons -->
+        <div style="background:#0f172a;border-radius:6px;padding:8px;overflow:hidden">
+          <div style="color:#64748b;font-size:8px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Leçons</div>
+          <div style="color:#94a3b8;font-size:9px;font-weight:600;margin-bottom:4px;padding:3px 5px;background:#1e293b;border-radius:4px">📖 Panneaux danger</div>
+          <div style="background:#1B4FD820;border-left:2px solid #1B4FD8;padding:3px 6px;margin-bottom:2px">
+            <div style="color:#93c5fd;font-size:8px">01 · Introduction</div>
+          </div>
+          <div style="padding:3px 6px;margin-bottom:2px">
+            <div style="color:#64748b;font-size:8px">02 · Les formes</div>
+          </div>
+          <div style="color:#94a3b8;font-size:9px;font-weight:600;margin-top:6px;margin-bottom:4px;padding:3px 5px;background:#1e293b;border-radius:4px">🚧 Panneaux interdiction</div>
+        </div>
+        <!-- Contenu -->
+        <div style="background:#0f172a;border-radius:6px;padding:8px;overflow:hidden">
+          <div style="color:#f1f5f9;font-size:9px;font-weight:600;margin-bottom:4px">01 · Introduction aux panneaux</div>
+          <div style="background:#1e293b;border-radius:6px;width:100%;height:40px;margin-bottom:5px;display:flex;align-items:center;justify-content:center">
+            <span style="color:#64748b;font-size:8px">🖼 Image</span>
+          </div>
+          <div style="color:#94a3b8;font-size:8px;line-height:1.5">Les panneaux de danger ont une forme triangulaire avec une bordure rouge...</div>
+          <div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap">
+            <span style="background:#1e293b;border-radius:3px;padding:2px 5px;color:#60a5fa;font-size:7px">🇫🇷 FR</span>
+            <span style="background:#1e293b;border-radius:3px;padding:2px 5px;color:#64748b;font-size:7px">WO</span>
+            <span style="background:#1e293b;border-radius:3px;padding:2px 5px;color:#64748b;font-size:7px">PU</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — 3 colonnes : Catégories | Leçons | Contenu</h3>
+      <p>Navigation en cascade. Tu cliques sur une catégorie → les leçons s'affichent → tu cliques sur une sous-leçon → le contenu apparaît à droite. Tout visible en même temps.</p>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Vision globale</span>
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Navigation rapide</span>
+        <span style="background:#fef9c3;color:#713f12;font-size:10px;padding:2px 8px;border-radius:20px">~ Contenu un peu étroit</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option B: Tabs + sidebar + contenu plein -->
+  <div class="card" data-choice="tabs-sidebar" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#1e293b;border-radius:8px;padding:12px;font-family:system-ui">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #334155;margin-bottom:0">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="background:#529f1420;padding:4px 8px;border-radius:6px;font-size:16px">🚦</span>
+          <span style="color:#f1f5f9;font-size:11px;font-weight:700">Signalisation</span>
+        </div>
+        <span style="color:#64748b;font-size:14px">×</span>
+      </div>
+      <!-- Tabs catégories -->
+      <div style="display:flex;gap:2px;padding:6px 0;border-bottom:1px solid #334155;margin-bottom:8px">
+        <div style="background:#1B4FD8;padding:3px 10px;border-radius:4px;color:#fff;font-size:9px">📚 Panneaux</div>
+        <div style="padding:3px 10px;border-radius:4px;color:#64748b;font-size:9px">🔄 Priorité</div>
+        <div style="padding:3px 10px;border-radius:4px;color:#64748b;font-size:9px">⚠️ Urgence</div>
+      </div>
+      <!-- 2 cols -->
+      <div style="display:grid;grid-template-columns:140px 1fr;gap:6px;height:110px">
+        <!-- Sidebar leçons -->
+        <div style="background:#0f172a;border-radius:6px;padding:8px;overflow:hidden">
+          <div style="color:#94a3b8;font-size:9px;font-weight:600;margin-bottom:4px">📖 Panneaux danger</div>
+          <div style="background:#1B4FD820;border-left:2px solid #1B4FD8;padding:3px 8px;margin-bottom:2px;border-radius:0 4px 4px 0">
+            <div style="color:#93c5fd;font-size:8px;font-weight:500">01 · Introduction</div>
+          </div>
+          <div style="padding:3px 8px;margin-bottom:2px">
+            <div style="color:#64748b;font-size:8px">02 · Les formes</div>
+          </div>
+          <div style="color:#94a3b8;font-size:9px;font-weight:600;margin-top:6px;margin-bottom:4px">🚧 Interdictions</div>
+          <div style="padding:3px 8px;margin-bottom:2px">
+            <div style="color:#64748b;font-size:8px">01 · Panneaux ronds</div>
+          </div>
+        </div>
+        <!-- Contenu large -->
+        <div style="background:#0f172a;border-radius:6px;padding:8px">
+          <div style="color:#f1f5f9;font-size:9px;font-weight:600;margin-bottom:6px">01 · Introduction aux panneaux de danger</div>
+          <div style="display:flex;gap:6px;margin-bottom:5px">
+            <div style="background:#1B4FD820;border-radius:4px;width:55px;height:35px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <span style="font-size:16px">🚸</span>
+            </div>
+            <div style="color:#94a3b8;font-size:8px;line-height:1.5">Les panneaux de danger ont une forme triangulaire avec une bordure rouge vif...</div>
+          </div>
+          <div style="display:flex;gap:3px">
+            <div style="background:#1e293b;border-radius:3px;padding:2px 5px;color:#f1f5f9;font-size:7px;border:1px solid #334155">• Point clé 1</div>
+            <div style="background:#1e293b;border-radius:3px;padding:2px 5px;color:#64748b;font-size:7px">• Point clé 2</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Tabs catégories + sidebar leçons + contenu large</h3>
+      <p>Les catégories sont des onglets en haut. Sidebar gauche pour naviguer dans les leçons/sous-leçons. Le contenu prend tout l'espace restant — texte, image, bullets bien lisibles.</p>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Contenu bien lisible</span>
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Navigation claire</span>
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Pattern familier</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option C: Sidebar accordéon + contenu -->
+  <div class="card" data-choice="accordion" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#1e293b;border-radius:8px;padding:12px;font-family:system-ui">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #334155;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:16px">🚦</span>
+          <span style="color:#f1f5f9;font-size:11px;font-weight:700">Signalisation</span>
+        </div>
+        <span style="color:#64748b;font-size:14px">×</span>
+      </div>
+      <div style="display:grid;grid-template-columns:160px 1fr;gap:6px;height:130px">
+        <!-- Accordéon -->
+        <div style="background:#0f172a;border-radius:6px;padding:8px;overflow:hidden">
+          <!-- Cat 1 open -->
+          <div style="background:#1e293b;border-radius:4px;padding:4px 6px;margin-bottom:2px;display:flex;justify-content:space-between;align-items:center">
+            <span style="color:#f1f5f9;font-size:9px;font-weight:600">📚 Panneaux</span>
+            <span style="color:#64748b;font-size:10px">▲</span>
+          </div>
+          <!-- Leçon 1 open -->
+          <div style="padding-left:8px;margin-bottom:2px">
+            <div style="background:#1e293b;border-radius:4px;padding:3px 6px;margin-bottom:2px;display:flex;justify-content:space-between">
+              <span style="color:#94a3b8;font-size:8px">📖 Panneaux danger</span>
+              <span style="color:#64748b;font-size:9px">▲</span>
+            </div>
+            <div style="padding-left:8px">
+              <div style="background:#1B4FD820;padding:2px 5px;border-radius:3px;margin-bottom:2px;border-left:2px solid #1B4FD8">
+                <span style="color:#93c5fd;font-size:7px">01 · Introduction ●</span>
+              </div>
+              <div style="padding:2px 5px;margin-bottom:1px"><span style="color:#64748b;font-size:7px">02 · Les formes</span></div>
+            </div>
+          </div>
+          <!-- Cat 2 closed -->
+          <div style="background:#1e293b;border-radius:4px;padding:4px 6px;margin-bottom:2px;display:flex;justify-content:space-between;align-items:center;opacity:0.6">
+            <span style="color:#94a3b8;font-size:9px">🔄 Priorité</span>
+            <span style="color:#64748b;font-size:10px">▼</span>
+          </div>
+          <div style="background:#1e293b;border-radius:4px;padding:4px 6px;display:flex;justify-content:space-between;align-items:center;opacity:0.6">
+            <span style="color:#94a3b8;font-size:9px">⚠️ Urgence</span>
+            <span style="color:#64748b;font-size:10px">▼</span>
+          </div>
+        </div>
+        <!-- Contenu -->
+        <div style="background:#0f172a;border-radius:6px;padding:8px">
+          <div style="color:#f1f5f9;font-size:9px;font-weight:600;margin-bottom:5px">01 · Introduction aux panneaux</div>
+          <div style="background:#1e293b;border-radius:6px;width:100%;height:38px;margin-bottom:5px;display:flex;align-items:center;justify-content:center">
+            <span style="color:#64748b;font-size:8px">🖼 Image de la sous-leçon</span>
+          </div>
+          <div style="color:#94a3b8;font-size:8px;line-height:1.5">Les panneaux de danger ont une forme triangulaire...</div>
+          <div style="background:#1e293b;border-radius:4px;padding:4px;margin-top:4px">
+            <div style="color:#fbbf24;font-size:7px;margin-bottom:2px">💡 Le saviez-vous ?</div>
+            <div style="color:#94a3b8;font-size:7px">En France, les panneaux suivent la norme CE...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Arbre accordéon + contenu</h3>
+      <p>Sidebar avec toute la hiérarchie en accordéon (Catégorie → Leçon → Sous-leçon). On peut tout voir et tout déplier d'un coup. Contenu affiché à droite au clic.</p>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Hiérarchie visible</span>
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Tout accessible</span>
+        <span style="background:#fef9c3;color:#713f12;font-size:10px;padding:2px 8px;border-radius:20px">~ Long si beaucoup de leçons</span>
+      </div>
+    </div>
+  </div>
+
+</div>

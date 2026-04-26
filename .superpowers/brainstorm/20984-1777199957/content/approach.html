@@ -1,0 +1,119 @@
+<h2>Comment afficher la prévisualisation du module ?</h2>
+<p class="subtitle">Choisis le mode d'affichage qui correspond le mieux à ton usage admin</p>
+
+<div class="cards">
+
+  <!-- Option A -->
+  <div class="card" data-choice="fullpage" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a;padding:16px;border-radius:8px;font-family:system-ui">
+      <div style="background:#1e293b;border-radius:6px;height:28px;display:flex;align-items:center;padding:0 12px;margin-bottom:10px">
+        <span style="color:#94a3b8;font-size:11px">← Retour aux modules</span>
+        <span style="color:#f1f5f9;font-size:12px;font-weight:600;margin-left:auto">🚦 Signalisation — Prévisualisation</span>
+      </div>
+      <div style="display:grid;grid-template-columns:220px 1fr;gap:10px;height:140px">
+        <div style="background:#1e293b;border-radius:6px;padding:10px;overflow:hidden">
+          <div style="color:#64748b;font-size:9px;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">CATÉGORIES</div>
+          <div style="background:#1B4FD8;border-radius:4px;padding:5px 8px;color:#fff;font-size:10px;margin-bottom:4px">📚 Panneaux</div>
+          <div style="padding:5px 8px;color:#94a3b8;font-size:10px;margin-bottom:4px">🔄 Règles de priorité</div>
+          <div style="padding:5px 8px;color:#94a3b8;font-size:10px">⚠️ Signaux d'urgence</div>
+        </div>
+        <div style="background:#1e293b;border-radius:6px;padding:10px;overflow-y:auto">
+          <div style="color:#f1f5f9;font-size:11px;font-weight:600;margin-bottom:6px">📖 Leçon 1 — Panneaux de danger</div>
+          <div style="display:flex;gap:6px;margin-bottom:8px">
+            <div style="background:#0f172a;border-radius:4px;padding:4px 8px;color:#94a3b8;font-size:9px">01 · Intro</div>
+            <div style="background:#0f172a;border-radius:4px;padding:4px 8px;color:#94a3b8;font-size:9px">02 · Formes</div>
+          </div>
+          <div style="background:#0f172a;border-radius:4px;padding:8px;color:#cbd5e1;font-size:9px;line-height:1.5">
+            Les panneaux de danger ont une forme triangulaire avec bordure rouge...
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Page dédiée plein écran</h3>
+      <p>Route <code>/modules/[id]/preview</code> — vue complète avec sidebar navigation + contenu. Immersif, idéal pour réviser tout un module en profondeur.</p>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Espace maximal</span>
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Navigation fluide</span>
+        <span style="background:#fef9c3;color:#713f12;font-size:10px;padding:2px 8px;border-radius:20px">~ Quitte la liste</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="card" data-choice="sheet" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a;padding:16px;border-radius:8px;font-family:system-ui;position:relative;overflow:hidden">
+      <!-- Admin page blurred behind -->
+      <div style="opacity:0.3;filter:blur(1px)">
+        <div style="background:#1e293b;border-radius:6px;height:28px;margin-bottom:8px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;height:50px">
+          <div style="background:#1e293b;border-radius:6px"></div>
+          <div style="background:#1e293b;border-radius:6px"></div>
+          <div style="background:#1e293b;border-radius:6px"></div>
+        </div>
+      </div>
+      <!-- Sheet overlay -->
+      <div style="position:absolute;right:0;top:0;bottom:0;width:65%;background:#1e293b;border-left:2px solid #334155;padding:12px;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="color:#f1f5f9;font-size:11px;font-weight:600">🚦 Signalisation</span>
+          <span style="color:#64748b;font-size:14px;cursor:pointer">×</span>
+        </div>
+        <div style="display:flex;gap:4px;margin-bottom:8px">
+          <div style="background:#1B4FD8;padding:3px 8px;border-radius:4px;color:#fff;font-size:9px">Panneaux</div>
+          <div style="padding:3px 8px;border-radius:4px;color:#64748b;font-size:9px">Règles</div>
+        </div>
+        <div style="flex:1;background:#0f172a;border-radius:6px;padding:8px">
+          <div style="color:#94a3b8;font-size:9px;margin-bottom:4px">📖 Panneaux de danger · 01</div>
+          <div style="color:#cbd5e1;font-size:9px;line-height:1.5">Les panneaux triangulaires signalent un danger...</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Panneau latéral (Sheet)</h3>
+      <p>Drawer qui glisse depuis la droite sur la page existante. Pratique pour consulter rapidement sans perdre le contexte de la liste des modules.</p>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Garde le contexte</span>
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Rapide à ouvrir</span>
+        <span style="background:#fef9c3;color:#713f12;font-size:10px;padding:2px 8px;border-radius:20px">~ Espace réduit</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option C -->
+  <div class="card" data-choice="modal" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a;padding:16px;border-radius:8px;font-family:system-ui;position:relative">
+      <div style="opacity:0.25;filter:blur(1px)">
+        <div style="background:#1e293b;border-radius:6px;height:28px;margin-bottom:8px"></div>
+        <div style="background:#1e293b;border-radius:6px;height:80px"></div>
+      </div>
+      <!-- Modal overlay -->
+      <div style="position:absolute;inset:8px;background:#1e293b;border-radius:8px;border:1px solid #334155;padding:12px;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px solid #334155;padding-bottom:6px">
+          <span style="color:#f1f5f9;font-size:11px;font-weight:700">🚦 Signalisation — Aperçu complet</span>
+          <span style="color:#64748b;cursor:pointer">×</span>
+        </div>
+        <div style="display:grid;grid-template-columns:140px 1fr;gap:8px;flex:1">
+          <div>
+            <div style="color:#64748b;font-size:8px;margin-bottom:4px;text-transform:uppercase">Catégories</div>
+            <div style="background:#1B4FD8;border-radius:4px;padding:4px 6px;color:#fff;font-size:9px;margin-bottom:3px">Panneaux</div>
+            <div style="padding:4px 6px;color:#64748b;font-size:9px;margin-bottom:3px">Règles</div>
+          </div>
+          <div style="background:#0f172a;border-radius:6px;padding:8px">
+            <div style="color:#f1f5f9;font-size:9px;font-weight:600;margin-bottom:4px">Panneaux de danger · 01</div>
+            <div style="color:#94a3b8;font-size:8px;line-height:1.5">Contenu de la sous-leçon...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Modale plein écran</h3>
+      <p>Dialog qui prend 95% de l'écran avec fond assombri. Expérience immersive mais reste dans la même page — fermeture rapide.</p>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Très immersif</span>
+        <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:20px">✓ Fermeture facile</span>
+        <span style="background:#fef9c3;color:#713f12;font-size:10px;padding:2px 8px;border-radius:20px">~ Scroll interne complexe</span>
+      </div>
+    </div>
+  </div>
+
+</div>
