@@ -38,6 +38,7 @@ export interface SubLessonPreview {
 export interface LessonPreview {
   title: string
   module_id: string
+  module_title: string
   category_name: string
   sub_lessons: SubLessonPreview[]
 }
