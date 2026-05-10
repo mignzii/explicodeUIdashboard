@@ -1,5 +1,28 @@
 const PIPELINE_URL = process.env.NEXT_PUBLIC_PIPELINE_URL || 'http://localhost:8000'
 
+export interface Module {
+  id: string
+  title: string
+  icon?: string
+}
+
+export interface Category {
+  id: string
+  title: string
+}
+
+export async function getModules(): Promise<Module[]> {
+  const res = await fetch(`${PIPELINE_URL}/modules`)
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
+export async function getCategories(moduleId: string): Promise<Category[]> {
+  const res = await fetch(`${PIPELINE_URL}/modules/${moduleId}/categories`)
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
 export interface SubLessonPreview {
   number: number
   title: string

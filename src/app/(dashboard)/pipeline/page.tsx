@@ -1,7 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { runPipeline, getJobStatus, getPreview, commitPipeline, LessonPreview, JobStatus } from '@/lib/pipelineApi'
+import {
+  runPipeline, getJobStatus, getPreview, commitPipeline,
+  getModules, getCategories,
+  LessonPreview, JobStatus, Module, Category,
+} from '@/lib/pipelineApi'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,10 +16,17 @@ type Step = 'upload' | 'processing' | 'preview' | 'done'
 
 export default function PipelinePage() {
   const [step, setStep] = useState<Step>('upload')
-  const [moduleId, setModuleId] = useState('')
-  const [categoryName, setCategoryName] = useState('')
+
+  // Form state
+  const [modules, setModules] = useState<Module[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [selectedModuleId, setSelectedModuleId] = useState('')
+  const [selectedCategoryId, setSelectedCategoryId] = useState('')
+  const [newCategoryName, setNewCategoryName] = useState('')
   const [pdfFile, setPdfFile] = useState<File | null>(null)
   const [imageFiles, setImageFiles] = useState<File[]>([])
+
+  // Pipeline state
   const [jobId, setJobId] = useState<string | null>(null)
   const [progress, setProgress] = useState('')
   const [preview, setPreview] = useState<LessonPreview | null>(null)
@@ -23,16 +34,35 @@ export default function PipelinePage() {
   const [result, setResult] = useState<{ lesson_id: string; sub_lessons_count: number } | null>(null)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Load modules on mount
+  useEffect(() => {
+    getModules()
+      .then(setModules)
+      .catch(() => setError('Impossible de charger les modules'))
+  }, [])
+
+  // Load categories when module changes
+  useEffect(() => {
+    if (!selectedModuleId) { setCategories([]); setSelectedCategoryId(''); return }
+    getCategories(selectedModuleId)
+      .then(setCategories)
+      .catch(() => setError('Impossible de charger les catégories'))
+  }, [selectedModuleId])
+
+  const categoryName = selectedCategoryId === '__new__'
+    ? newCategoryName
+    : categories.find(c => c.id === selectedCategoryId)?.title ?? ''
+
+  const canSubmit = pdfFile && imageFiles.length > 0 && selectedModuleId &&
+    (selectedCategoryId !== '' && selectedCategoryId !== '__new__' || newCategoryName.trim() !== '')
+
   const handleSubmit = async () => {
-    if (!pdfFile || imageFiles.length === 0 || !moduleId || !categoryName) {
-      setError('Tous les champs sont requis')
-      return
-    }
+    if (!canSubmit) { setError('Tous les champs sont requis'); return }
     setError(null)
     const fd = new FormData()
-    fd.append('module_id', moduleId)
+    fd.append('module_id', selectedModuleId)
     fd.append('category_name', categoryName)
-    fd.append('pdf', pdfFile)
+    fd.append('pdf', pdfFile!)
     imageFiles.forEach(f => fd.append('images', f))
 
     try {
@@ -40,7 +70,7 @@ export default function PipelinePage() {
       setJobId(job_id)
       setStep('processing')
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(e instanceof Error ? e.message : 'Erreur inconnue')
     }
   }
 
@@ -71,39 +101,103 @@ export default function PipelinePage() {
       setResult(r)
       setStep('done')
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(e instanceof Error ? e.message : 'Erreur inconnue')
     }
+  }
+
+  const reset = () => {
+    setStep('upload')
+    setPreview(null)
+    setJobId(null)
+    setResult(null)
+    setError(null)
+    setPdfFile(null)
+    setImageFiles([])
   }
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold">Pipeline IA — Ingestion de contenu</h1>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded">{error}</div>}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded text-sm">
+          {error}
+        </div>
+      )}
 
       {/* Étape 1 — Upload */}
       {step === 'upload' && (
         <Card>
-          <CardHeader><CardTitle>Étape 1 — Upload des fichiers</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label>ID du Module</Label>
-              <Input value={moduleId} onChange={e => setModuleId(e.target.value)} placeholder="uuid du module cible" />
+          <CardHeader><CardTitle>Étape 1 — Configurer et uploader</CardTitle></CardHeader>
+          <CardContent className="space-y-5">
+
+            {/* Module */}
+            <div className="space-y-1.5">
+              <Label>Module</Label>
+              <select
+                className="w-full border rounded-md px-3 py-2 text-sm bg-white"
+                value={selectedModuleId}
+                onChange={e => setSelectedModuleId(e.target.value)}
+              >
+                <option value="">— Sélectionner un module —</option>
+                {modules.map(m => (
+                  <option key={m.id} value={m.id}>{m.icon} {m.title}</option>
+                ))}
+              </select>
             </div>
-            <div>
-              <Label>Nom de la Catégorie</Label>
-              <Input value={categoryName} onChange={e => setCategoryName(e.target.value)} placeholder="ex: Panneaux d'Obligation" />
-            </div>
-            <div>
+
+            {/* Catégorie */}
+            {selectedModuleId && (
+              <div className="space-y-1.5">
+                <Label>Catégorie</Label>
+                <select
+                  className="w-full border rounded-md px-3 py-2 text-sm bg-white"
+                  value={selectedCategoryId}
+                  onChange={e => setSelectedCategoryId(e.target.value)}
+                >
+                  <option value="">— Sélectionner une catégorie —</option>
+                  {categories.map(c => (
+                    <option key={c.id} value={c.id}>{c.title}</option>
+                  ))}
+                  <option value="__new__">+ Créer une nouvelle catégorie</option>
+                </select>
+                {selectedCategoryId === '__new__' && (
+                  <Input
+                    placeholder="Nom de la nouvelle catégorie"
+                    value={newCategoryName}
+                    onChange={e => setNewCategoryName(e.target.value)}
+                    className="mt-2"
+                  />
+                )}
+              </div>
+            )}
+
+            {/* PDF */}
+            <div className="space-y-1.5">
               <Label>PDF de la leçon</Label>
-              <Input type="file" accept=".pdf" onChange={e => setPdfFile(e.target.files?.[0] || null)} />
+              <Input
+                type="file"
+                accept=".pdf"
+                onChange={e => setPdfFile(e.target.files?.[0] || null)}
+              />
+              {pdfFile && <p className="text-xs text-gray-500">{pdfFile.name}</p>}
             </div>
-            <div>
-              <Label>Images des panneaux (sélectionner tous les fichiers du dossier)</Label>
-              <Input type="file" accept="image/*" multiple onChange={e => setImageFiles(Array.from(e.target.files || []))} />
-              {imageFiles.length > 0 && <p className="text-sm text-gray-500 mt-1">{imageFiles.length} image(s) sélectionnée(s)</p>}
+
+            {/* Images */}
+            <div className="space-y-1.5">
+              <Label>Images des panneaux <span className="text-gray-400 font-normal">(nommées 01_xxx.png, 02_xxx.png…)</span></Label>
+              <Input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={e => setImageFiles(Array.from(e.target.files || []))}
+              />
+              {imageFiles.length > 0 && (
+                <p className="text-xs text-gray-500">{imageFiles.length} image(s) sélectionnée(s)</p>
+              )}
             </div>
-            <Button onClick={handleSubmit} disabled={!pdfFile || imageFiles.length === 0}>
+
+            <Button onClick={handleSubmit} disabled={!canSubmit} className="w-full">
               Lancer le traitement
             </Button>
           </CardContent>
@@ -117,7 +211,7 @@ export default function PipelinePage() {
           <CardContent>
             <div className="flex items-center gap-3">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600" />
-              <p className="text-gray-600">{progress || 'Démarrage…'}</p>
+              <p className="text-gray-600 text-sm">{progress || 'Démarrage…'}</p>
             </div>
           </CardContent>
         </Card>
@@ -127,22 +221,24 @@ export default function PipelinePage() {
       {step === 'preview' && preview && (
         <Card>
           <CardHeader>
-            <CardTitle>Étape 3 — Validation du contenu</CardTitle>
-            <p className="text-sm text-gray-500">{preview.sub_lessons.length} sous-leçons générées pour « {preview.title} »</p>
+            <CardTitle>Étape 3 — Validation</CardTitle>
+            <p className="text-sm text-gray-500 mt-1">
+              <span className="font-medium">{preview.title}</span> · {preview.sub_lessons.length} sous-leçons · catégorie <span className="font-medium">{preview.category_name}</span>
+            </p>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             {preview.sub_lessons.map(sl => (
-              <div key={sl.number} className="border rounded p-3 space-y-2">
+              <div key={sl.number} className="border rounded-lg p-3 space-y-2">
                 <div className="flex items-center gap-2">
                   <Badge variant="outline">#{sl.number}</Badge>
-                  <span className="font-medium">{sl.title}</span>
+                  <span className="font-medium text-sm">{sl.title}</span>
                 </div>
                 {sl.image_url && (
                   <img src={sl.image_url} alt={sl.title} className="h-16 w-16 object-contain border rounded" />
                 )}
                 <p className="text-sm text-gray-700">{sl.content.description}</p>
                 {sl.content.bullets.length > 0 && (
-                  <ul className="text-sm text-gray-600 list-disc list-inside">
+                  <ul className="text-sm text-gray-600 list-disc list-inside space-y-0.5">
                     {sl.content.bullets.map((b, i) => <li key={i}>{b}</li>)}
                   </ul>
                 )}
@@ -151,7 +247,7 @@ export default function PipelinePage() {
                 )}
               </div>
             ))}
-            <Button onClick={handleCommit} className="w-full">
+            <Button onClick={handleCommit} className="w-full mt-2">
               ✅ Valider et insérer en base de données
             </Button>
           </CardContent>
@@ -163,8 +259,8 @@ export default function PipelinePage() {
         <Card>
           <CardHeader><CardTitle>✅ Contenu inséré avec succès</CardTitle></CardHeader>
           <CardContent>
-            <p>{result.sub_lessons_count} sous-leçons créées.</p>
-            <Button variant="outline" className="mt-4" onClick={() => { setStep('upload'); setPreview(null); setJobId(null) }}>
+            <p className="text-gray-700">{result.sub_lessons_count} sous-leçons créées.</p>
+            <Button variant="outline" className="mt-4" onClick={reset}>
               Traiter un autre PDF
             </Button>
           </CardContent>
