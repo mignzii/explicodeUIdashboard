@@ -26,8 +26,9 @@ export async function getCategories(moduleId: string): Promise<Category[]> {
 export interface SubLessonPreview {
   number: number
   title: string
-  image_filename: string
+  image_filename: string | null
   image_url: string | null
+  match_method: string
   content: {
     description: string
     bullets: string[]
@@ -41,6 +42,11 @@ export interface LessonPreview {
   module_title: string
   category_name: string
   sub_lessons: SubLessonPreview[]
+}
+
+export interface PipelinePreviewResponse {
+  lesson_draft: LessonPreview
+  filename_to_url: Record<string, string>
 }
 
 export interface JobStatus {
@@ -64,14 +70,21 @@ export async function getJobStatus(jobId: string): Promise<JobStatus> {
   return res.json()
 }
 
-export async function getPreview(jobId: string): Promise<LessonPreview> {
+export async function getPreview(jobId: string): Promise<PipelinePreviewResponse> {
   const res = await fetch(`${PIPELINE_URL}/pipeline/preview/${jobId}`)
   if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
 
-export async function commitPipeline(jobId: string): Promise<{ lesson_id: string; sub_lessons_count: number }> {
-  const res = await fetch(`${PIPELINE_URL}/pipeline/commit/${jobId}`, { method: 'POST' })
+export async function commitPipeline(
+  jobId: string,
+  updatedDraft?: LessonPreview
+): Promise<{ lesson_id: string; sub_lessons_count: number }> {
+  const res = await fetch(`${PIPELINE_URL}/pipeline/commit/${jobId}`, {
+    method: 'POST',
+    headers: updatedDraft ? { 'Content-Type': 'application/json' } : {},
+    body: updatedDraft ? JSON.stringify(updatedDraft) : undefined,
+  })
   if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
