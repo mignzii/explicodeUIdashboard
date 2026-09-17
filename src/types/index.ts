@@ -55,6 +55,29 @@ export interface Lesson {
   updatedAt?: string
 }
 
+export interface ExpressSlide {
+  order: number
+  headline: string
+  body: string
+}
+
+export interface ExpressLesson {
+  id: string
+  subLessonId: string
+  lang: string
+  title: string
+  hook: string
+  theme: 'ocean' | 'emerald' | 'amber' | 'slate'
+  badge?: string | null
+  status: 'draft' | 'published'
+  slides: ExpressSlide[]
+  question: string
+  options: string[]
+  correctIndex: number
+  explanation: string
+  order?: number
+}
+
 export interface SubLesson {
   id: string
   lessonId: string
