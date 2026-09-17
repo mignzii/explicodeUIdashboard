@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft, Plus, Pencil, Trash2, Lock, Unlock, ChevronRight,
   ChevronDown, Loader2, FolderOpen, BookOpen, List, FileText, X, Video, Headphones,
-  ImageIcon, Upload, Eye,
+  ImageIcon, Upload, Eye, Zap,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,6 +19,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { LearningModule, Category, Lesson, SubLesson, LessonContent } from '@/types'
+import ExpressPanel from '@/components/express/ExpressPanel'
 import { modulesApi, categoriesApi, lessonsApi, subLessonsApi, contentApi, uploadsApi } from '@/lib/learningApi'
 import { generateAudio, getAudioStatus, regenerateAudio } from '@/lib/pipelineApi'
 import { ModulePreviewModal } from '@/components/ModulePreviewModal'
@@ -190,6 +191,7 @@ export default function ModuleDetailPage() {
   })
   const [uploadingImage, setUploadingImage] = useState(false)
 
+  const [expressSubLesson, setExpressSubLesson] = useState<SubLesson | null>(null)
   const [contentModal, setContentModal] = useState(false)
   const [contentSubLesson, setContentSubLesson] = useState<SubLesson | null>(null)
   const [contentLang, setContentLang] = useState<Lang>('FR')
@@ -663,6 +665,14 @@ export default function ModuleDetailPage() {
                                           >
                                             <FileText className="w-3 h-3" /> Contenu
                                           </Button>
+                                          <Button
+                                            variant="outline" size="sm"
+                                            onClick={() => setExpressSubLesson(sub)}
+                                            className="text-xs gap-1 h-7 flex-shrink-0 text-orange-600"
+                                            title="Leçon express (30 s)"
+                                          >
+                                            <Zap className="w-3 h-3" /> Express
+                                          </Button>
                                           <div className="flex items-center gap-1 flex-shrink-0">
                                             <Button variant="ghost" size="icon-sm" onClick={() => openEditSub(sub)}><Pencil className="w-3 h-3" /></Button>
                                             <AlertDialog>
@@ -1056,6 +1066,13 @@ export default function ModuleDetailPage() {
           moduleColor={module.color}
           open={previewOpen}
           onClose={() => setPreviewOpen(false)}
+        />
+      )}
+
+      {expressSubLesson && (
+        <ExpressPanel
+          subLesson={expressSubLesson}
+          onClose={() => setExpressSubLesson(null)}
         />
       )}
     </div>
