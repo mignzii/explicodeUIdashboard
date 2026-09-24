@@ -1,71 +1,50 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Phone, MapPin, Calendar, Star, BookOpen, Target, FileText, Activity } from 'lucide-react'
+import { ArrowLeft, Phone, MapPin, Calendar, Clock, BookOpen, Target, FileText, RefreshCw, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Switch } from '@/components/ui/switch'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-
-// TODO: Replace with API call to /users/:id
-const mockUser = {
-  id: '1',
-  firstName: 'Mamadou',
-  lastName: 'Diallo',
-  phone: '+221 77 123 45 67',
-  region: 'Dakar',
-  profileType: 'APPRENANT',
-  isActive: true,
-  createdAt: '2024-01-15T10:00:00Z',
-  xp: 3450,
-  level: 12,
-  streakDays: 7,
-}
-
-const mockProgression = {
-  modulesCompleted: 7,
-  totalModules: 12,
-  lessonsCompleted: 48,
-  totalLessons: 87,
-  quizzesPassed: 34,
-  badges: [
-    { id: '1', name: 'Premier Pas', icon: '🎯', color: '#10B981', description: 'Première leçon terminée' },
-    { id: '2', name: 'Assidu', icon: '🔥', color: '#F59E0B', description: '7 jours consécutifs' },
-    { id: '3', name: 'Quiz Master', icon: '🏆', color: '#8B5CF6', description: '10 quiz réussis' },
-    { id: '4', name: 'Explorateur', icon: '🗺️', color: '#1B4FD8', description: '5 modules débloqués' },
-  ],
-}
-
-const mockQuizHistory = [
-  { id: '1', category: 'Code de la route', score: 85, total: 20, duration: 420, date: '2024-03-10T14:00:00Z', passed: true },
-  { id: '2', category: 'Signalisation', score: 70, total: 20, duration: 380, date: '2024-03-08T16:00:00Z', passed: true },
-  { id: '3', category: 'Priorités', score: 55, total: 20, duration: 450, date: '2024-03-06T10:00:00Z', passed: false },
-  { id: '4', category: 'Infractions', score: 90, total: 20, duration: 360, date: '2024-03-04T11:00:00Z', passed: true },
-  { id: '5', category: 'Conduite défensive', score: 75, total: 20, duration: 410, date: '2024-03-02T15:00:00Z', passed: true },
-]
-
-const mockDocuments = [
-  { id: '1', type: 'PERMIS_CONDUIRE', status: 'OK', uploadedAt: '2024-01-15T10:00:00Z', expiryDate: '2030-01-15' },
-  { id: '2', type: 'ASSURANCE', status: 'WARNING', uploadedAt: '2024-02-01T09:00:00Z', expiryDate: '2024-04-01' },
-  { id: '3', type: 'CARTE_GRISE', status: 'OK', uploadedAt: '2024-01-20T14:00:00Z', expiryDate: '2026-01-20' },
-]
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle
+} from '@/components/ui/alert-dialog'
+import { usersApi, apiMessage, profileLabels, displayName, formatPhone, type UserDetail } from '@/lib/usersApi'
+import toast from 'react-hot-toast'
 
 const docTypes: Record<string, string> = {
-  PERMIS_CONDUIRE: 'Permis de conduire',
-  ASSURANCE: 'Assurance',
-  CARTE_GRISE: 'Carte grise',
-  VISITE_TECHNIQUE: 'Visite technique',
-  AUTRE: 'Autre',
+  permis: 'Permis de conduire',
+  assurance: 'Assurance',
+  carte_grise: 'Carte grise',
+  visite_tech: 'Visite technique',
+  facture: 'Facture',
+  autre: 'Autre',
 }
 
-const statusConfig: Record<string, { label: string; variant: 'success' | 'warning' | 'destructive' }> = {
-  OK: { label: 'Valide', variant: 'success' },
-  WARNING: { label: 'Expire bientôt', variant: 'warning' },
-  EXPIRED: { label: 'Expiré', variant: 'destructive' },
+const docStatus: Record<string, { label: string; variant: 'success' | 'warning' | 'red' }> = {
+  ok: { label: 'Valide', variant: 'success' },
+  warning: { label: 'Expire bientôt', variant: 'warning' },
+  expired: { label: 'Expiré', variant: 'red' },
+}
+
+const date = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('fr-SN') : '—')
+
+function duration(seconds: number | null): string {
+  if (!seconds) return '—'
+  const m = Math.floor(seconds / 60)
+  return m ? `${m} min ${seconds % 60} s` : `${seconds} s`
+}
+
+function Empty({ children }: { children: React.ReactNode }) {
+  return <p className="text-sm text-gray-500 py-10 text-center">{children}</p>
 }
 
 export default function UserDetailPage() {
@@ -73,256 +52,281 @@ export default function UserDetailPage() {
   const router = useRouter()
   const userId = params.id as string
 
-  // TODO: Replace with API call to /users/:id
-  const user = mockUser
+  const [data, setData] = useState<UserDetail | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [confirm, setConfirm] = useState<'deactivate' | 'delete' | null>(null)
 
-  const moduleProgress = Math.round((mockProgression.modulesCompleted / mockProgression.totalModules) * 100)
-  const lessonProgress = Math.round((mockProgression.lessonsCompleted / mockProgression.totalLessons) * 100)
+  const load = useCallback(async () => {
+    setError(null)
+    try {
+      setData(await usersApi.detail(userId))
+    } catch (e) {
+      setError(apiMessage(e, 'Impossible de charger ce profil.'))
+    }
+  }, [userId])
+
+  useEffect(() => { load() }, [load])
+
+  const setActive = async (isActive: boolean) => {
+    if (!data) return
+    setBusy(true)
+    try {
+      await usersApi.setActive(userId, isActive)
+      setData({ ...data, user: { ...data.user, isActive } })
+      toast.success(isActive ? 'Compte réactivé' : 'Compte désactivé')
+    } catch (e) {
+      toast.error(apiMessage(e, 'Le changement de statut a échoué.'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const remove = async () => {
+    setBusy(true)
+    try {
+      await usersApi.remove(userId)
+      toast.success('Compte supprimé')
+      router.push('/users')
+    } catch (e) {
+      toast.error(apiMessage(e, 'La suppression a échoué.'))
+      setBusy(false)
+    }
+  }
+
+  const back = (
+    <Button variant="ghost" onClick={() => router.push('/users')} className="gap-2 text-gray-600">
+      <ArrowLeft className="w-4 h-4" /> Utilisateurs
+    </Button>
+  )
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        {back}
+        <Card>
+          <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+            <p className="text-sm text-gray-600">{error}</p>
+            <Button variant="outline" size="sm" className="gap-2" onClick={load}>
+              <RefreshCw className="w-4 h-4" /> Réessayer
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!data) {
+    return (
+      <div className="space-y-6">
+        {back}
+        <Skeleton className="h-36 w-full rounded-xl" />
+        <Skeleton className="h-64 w-full rounded-xl" />
+      </div>
+    )
+  }
+
+  const { user, progress, quiz, documents } = data
+  const isAdmin = user.profileType === 'admin'
+  const initials = `${user.firstName?.charAt(0) ?? ''}${user.lastName?.charAt(0) ?? ''}` || user.phone.slice(-2)
+  const current = progress.currentLesson
 
   return (
     <div className="space-y-6">
-      {/* Back button */}
-      <Button variant="ghost" onClick={() => router.back()} className="gap-2 text-gray-600">
-        <ArrowLeft className="w-4 h-4" /> Retour
-      </Button>
+      {back}
 
-      {/* Profile Card */}
       <Card>
         <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-6">
             <Avatar className="h-20 w-20">
-              <AvatarFallback className="bg-blue-600 text-white text-2xl font-bold">
-                {user.firstName.charAt(0)}{user.lastName.charAt(0)}
-              </AvatarFallback>
+              <AvatarFallback className="bg-blue-600 text-white text-2xl font-bold">{initials}</AvatarFallback>
             </Avatar>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 flex-wrap">
-                <h2 className="text-2xl font-bold text-gray-900">{user.firstName} {user.lastName}</h2>
-                <Badge variant={user.isActive ? 'success' : 'gray'}>
-                  {user.isActive ? 'Actif' : 'Inactif'}
-                </Badge>
-                <Badge variant="info">
-                  {user.profileType === 'APPRENANT' ? 'Apprenant' :
-                   user.profileType === 'CHAUFFEUR' ? 'Chauffeur' :
-                   user.profileType === 'AGENT_ROUTIER' ? 'Agent routier' : 'Auto-école'}
-                </Badge>
+                <h2 className="text-2xl font-bold text-gray-900">{displayName(user)}</h2>
+                <Badge variant={user.isActive ? 'success' : 'gray'}>{user.isActive ? 'Actif' : 'Désactivé'}</Badge>
+                <Badge variant="info">{profileLabels[user.profileType]}</Badge>
               </div>
-              <div className="flex flex-wrap gap-4 mt-3 text-sm text-gray-600">
-                <span className="flex items-center gap-1"><Phone className="w-4 h-4" /> {user.phone}</span>
-                <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {user.region}</span>
-                <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> Inscrit le {new Date(user.createdAt).toLocaleDateString('fr-SN')}</span>
+              <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3 text-sm text-gray-600">
+                <span className="flex items-center gap-1.5 tabular-nums"><Phone className="w-4 h-4" /> {formatPhone(user.phone)}</span>
+                <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4" /> {user.region || 'Région non renseignée'}</span>
+                <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> Inscrit le {date(user.createdAt)}</span>
+                <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> Dernière activité : {date(user.lastSeenAt)}</span>
               </div>
             </div>
-            <div className="flex gap-6 text-center">
-              <div className="bg-purple-50 rounded-xl px-4 py-3">
-                <p className="text-2xl font-bold text-purple-700">{user.xp.toLocaleString('fr-SN')}</p>
-                <p className="text-xs text-purple-500 font-medium">XP Total</p>
+            {!isAdmin && (
+              <div className="flex flex-col gap-3 lg:items-end">
+                <label className="flex items-center gap-3 text-sm text-gray-700">
+                  <span>{user.isActive ? 'Peut se connecter' : 'Connexion bloquée'}</span>
+                  <Switch
+                    checked={user.isActive}
+                    disabled={busy}
+                    onCheckedChange={(on) => (on ? setActive(true) : setConfirm('deactivate'))}
+                  />
+                </label>
+                <Button variant="ghost" size="sm" className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50" disabled={busy}
+                  onClick={() => setConfirm('delete')}>
+                  <Trash2 className="w-4 h-4" /> Supprimer le compte
+                </Button>
               </div>
-              <div className="bg-amber-50 rounded-xl px-4 py-3">
-                <p className="text-2xl font-bold text-amber-700">Niv. {user.level}</p>
-                <p className="text-xs text-amber-500 font-medium">Niveau actuel</p>
-              </div>
-              <div className="bg-orange-50 rounded-xl px-4 py-3">
-                <p className="text-2xl font-bold text-orange-700">{user.streakDays}</p>
-                <p className="text-xs text-orange-500 font-medium">Jours consécutifs</p>
-              </div>
-            </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Tabs */}
       <Tabs defaultValue="progression">
         <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="progression" className="gap-2">
-            <BookOpen className="w-4 h-4" /> Progression
-          </TabsTrigger>
-          <TabsTrigger value="quiz" className="gap-2">
-            <Target className="w-4 h-4" /> Historique Quiz
-          </TabsTrigger>
-          <TabsTrigger value="documents" className="gap-2">
-            <FileText className="w-4 h-4" /> Documents
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="gap-2">
-            <Activity className="w-4 h-4" /> Activité
-          </TabsTrigger>
+          <TabsTrigger value="progression" className="gap-2"><BookOpen className="w-4 h-4" /> Progression</TabsTrigger>
+          <TabsTrigger value="quiz" className="gap-2"><Target className="w-4 h-4" /> Quiz ({quiz.attempts})</TabsTrigger>
+          <TabsTrigger value="documents" className="gap-2"><FileText className="w-4 h-4" /> Documents ({documents.length})</TabsTrigger>
         </TabsList>
 
-        {/* Progression Tab */}
         <TabsContent value="progression" className="mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Progression des modules</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600">Modules terminés</span>
-                    <span className="font-semibold">{mockProgression.modulesCompleted}/{mockProgression.totalModules}</span>
-                  </div>
-                  <Progress value={moduleProgress} className="h-2" />
-                  <p className="text-xs text-gray-400 mt-1">{moduleProgress}% complété</p>
+              <CardHeader><CardTitle className="text-base">Cours</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Leçons terminées</span>
+                  <span className="font-semibold tabular-nums">{progress.completedSubLessons}/{progress.totalSubLessons}</span>
                 </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600">Leçons terminées</span>
-                    <span className="font-semibold">{mockProgression.lessonsCompleted}/{mockProgression.totalLessons}</span>
-                  </div>
-                  <Progress value={lessonProgress} className="h-2" />
-                  <p className="text-xs text-gray-400 mt-1">{lessonProgress}% complété</p>
-                </div>
-                <div className="pt-3 border-t">
-                  <div className="flex items-center gap-2">
-                    <Target className="w-5 h-5 text-purple-500" />
-                    <span className="text-sm text-gray-600">Quiz réussis:</span>
-                    <span className="font-bold text-purple-700">{mockProgression.quizzesPassed}</span>
-                  </div>
-                </div>
+                <Progress value={progress.completionRate} className="h-2" />
+                <p className="text-xs text-gray-500">{progress.completionRate} % du programme</p>
               </CardContent>
             </Card>
-
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Badges obtenus</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle className="text-base">Dernière leçon terminée</CardTitle></CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-3">
-                  {mockProgression.badges.map(badge => (
-                    <div
-                      key={badge.id}
-                      className="flex items-center gap-3 p-3 rounded-lg border bg-gray-50 hover:bg-white transition-colors"
-                    >
-                      <span className="text-2xl">{badge.icon}</span>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">{badge.name}</p>
-                        <p className="text-xs text-gray-500">{badge.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                {current ? (
+                  <div className="space-y-1">
+                    <p className="font-medium text-gray-900">{current.lessonTitle}</p>
+                    <p className="text-sm text-gray-500">
+                      {[current.moduleTitle, current.categoryTitle].filter(Boolean).join(' › ')}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">Aucune leçon terminée pour l’instant.</p>
+                )}
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
-        {/* Quiz History Tab */}
         <TabsContent value="quiz" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Historique des quiz</CardTitle>
+              <CardTitle className="text-base">
+                {quiz.attempts
+                  ? `Moyenne ${quiz.averageScore} % · meilleur score ${quiz.bestScore} %`
+                  : 'Quiz et examens blancs'}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Catégorie</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead>Durée</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Résultat</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockQuizHistory.map(attempt => (
-                    <TableRow key={attempt.id}>
-                      <TableCell className="font-medium">{attempt.category}</TableCell>
-                      <TableCell>
-                        <span className={`font-bold ${attempt.score >= 70 ? 'text-emerald-600' : 'text-red-500'}`}>
-                          {attempt.score}%
-                        </span>
-                        <span className="text-xs text-gray-400 ml-1">({Math.round(attempt.score * attempt.total / 100)}/{attempt.total})</span>
-                      </TableCell>
-                      <TableCell className="text-gray-600 text-sm">
-                        {Math.floor(attempt.duration / 60)}m {attempt.duration % 60}s
-                      </TableCell>
-                      <TableCell className="text-xs text-gray-500">
-                        {new Date(attempt.date).toLocaleDateString('fr-SN')}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={attempt.passed ? 'success' : 'destructive'}>
-                          {attempt.passed ? 'Réussi' : 'Échoué'}
-                        </Badge>
-                      </TableCell>
+              {quiz.history.length === 0 ? (
+                <Empty>Aucun quiz passé pour l’instant.</Empty>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Quiz</TableHead>
+                      <TableHead>Score</TableHead>
+                      <TableHead>Durée</TableHead>
+                      <TableHead>Date</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {quiz.history.map(a => (
+                      <TableRow key={a.id}>
+                        <TableCell className="font-medium">
+                          {a.isExamBlanc ? 'Examen blanc' : a.categoryTitle || 'Entraînement'}
+                        </TableCell>
+                        <TableCell className="tabular-nums">
+                          <span className={`font-bold ${a.score >= 70 ? 'text-emerald-600' : 'text-red-500'}`}>{a.score} %</span>
+                          <span className="text-xs text-gray-400 ml-1">({a.correctCount}/{a.totalCount})</span>
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-600">{duration(a.durationSeconds)}</TableCell>
+                        <TableCell className="text-xs text-gray-500">{date(a.completedAt)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Documents Tab */}
         <TabsContent value="documents" className="mt-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Documents soumis</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-base">Documents enregistrés dans l’app</CardTitle></CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Type de document</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Date d&apos;upload</TableHead>
-                    <TableHead>Date d&apos;expiration</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockDocuments.map(doc => {
-                    const config = statusConfig[doc.status]
-                    return (
-                      <TableRow key={doc.id}>
-                        <TableCell className="font-medium">{docTypes[doc.type] || doc.type}</TableCell>
-                        <TableCell>
-                          <Badge variant={config.variant}>{config.label}</Badge>
-                        </TableCell>
-                        <TableCell className="text-sm text-gray-500">
-                          {new Date(doc.uploadedAt).toLocaleDateString('fr-SN')}
-                        </TableCell>
-                        <TableCell className="text-sm text-gray-500">
-                          {doc.expiryDate ? new Date(doc.expiryDate).toLocaleDateString('fr-SN') : '-'}
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="outline" size="sm" className="gap-1 text-xs">
-                            <FileText className="w-3 h-3" /> Voir
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Activity Tab */}
-        <TabsContent value="activity" className="mt-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {[
-                  { icon: '✅', text: 'A terminé le module "Signalisation routière"', time: 'Il y a 2h' },
-                  { icon: '🎯', text: 'Score de 85% au quiz "Code de la route"', time: 'Il y a 3h' },
-                  { icon: '📚', text: 'A commencé la leçon "Priorités aux intersections"', time: 'Hier' },
-                  { icon: '🏆', text: 'Badge "Assidu" débloqué - 7 jours consécutifs', time: 'Il y a 2 jours' },
-                  { icon: '📱', text: 'Connexion depuis Dakar', time: 'Il y a 2 jours' },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-3 pb-4 border-b last:border-0">
-                    <span className="text-xl">{item.icon}</span>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-800">{item.text}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{item.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {documents.length === 0 ? (
+                <Empty>Aucun document enregistré.</Empty>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Document</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead>Ajouté le</TableHead>
+                      <TableHead>Expire le</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {documents.map(d => {
+                      const s = docStatus[d.status] ?? docStatus.ok
+                      return (
+                        <TableRow key={d.id}>
+                          <TableCell>
+                            <p className="font-medium">{docTypes[d.type] ?? d.type}</p>
+                            {d.organisme && <p className="text-xs text-gray-500">{d.organisme}</p>}
+                          </TableCell>
+                          <TableCell><Badge variant={s.variant}>{s.label}</Badge></TableCell>
+                          <TableCell className="text-sm text-gray-500">{date(d.uploadedAt)}</TableCell>
+                          <TableCell className="text-sm text-gray-500">{date(d.expiryDate)}</TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={!!confirm} onOpenChange={(open) => !open && setConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            {confirm === 'deactivate' ? (
+              <>
+                <AlertDialogTitle>Désactiver {displayName(user)} ?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  La personne est déconnectée de l’app et ne pourra plus se connecter avec le {formatPhone(user.phone)}.
+                  Ses données sont conservées : vous pourrez réactiver le compte à tout moment.
+                </AlertDialogDescription>
+              </>
+            ) : (
+              <>
+                <AlertDialogTitle>Supprimer le compte de {displayName(user)} ?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Le profil, la progression, les résultats de quiz et les documents sont effacés. Ses publications
+                  restent visibles sous le nom « Utilisateur supprimé ». Le {formatPhone(user.phone)} pourra créer un
+                  nouveau compte. Cette action est définitive.
+                </AlertDialogDescription>
+              </>
+            )}
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => { const c = confirm; setConfirm(null); if (c === 'deactivate') setActive(false); else remove() }}
+            >
+              {confirm === 'deactivate' ? 'Désactiver' : 'Supprimer définitivement'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
