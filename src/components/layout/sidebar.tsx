@@ -26,6 +26,7 @@ import {
   ChevronRight,
   LayoutGrid,
   ClipboardList,
+  Cpu,
   Megaphone,
 } from 'lucide-react'
 
@@ -89,6 +90,12 @@ const navSections: NavSection[] = [
     items: [
       { label: 'Codes ADR', href: '/adr', icon: Truck },
       { label: 'Progression', href: '/progression', icon: TrendingUp },
+    ],
+  },
+  {
+    title: 'IA',
+    items: [
+      { label: 'Pipeline IA', href: '/pipeline', icon: Cpu },
     ],
   },
   {

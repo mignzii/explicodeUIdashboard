@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft, Plus, Pencil, Trash2, Lock, Unlock, ChevronRight,
@@ -21,6 +21,7 @@ import {
 import { LearningModule, Category, Lesson, SubLesson, LessonContent } from '@/types'
 import ExpressPanel from '@/components/express/ExpressPanel'
 import { modulesApi, categoriesApi, lessonsApi, subLessonsApi, contentApi, uploadsApi } from '@/lib/learningApi'
+import { generateAudio, getAudioStatus, regenerateAudio } from '@/lib/pipelineApi'
 import { ModulePreviewModal } from '@/components/ModulePreviewModal'
 import toast from 'react-hot-toast'
 
@@ -61,6 +62,110 @@ export default function ModuleDetailPage() {
   const [subLessonsMap, setSubLessonsMap] = useState<Record<string, SubLesson[]>>({})
   const [saving, setSaving] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
+
+  // ── Narration audio (TTS) ───────────────────────────────────────────────────
+  type AudioJobUi = {
+    jobId: string
+    status: 'processing' | 'done' | 'error'
+    progress: string
+    total: number
+    completed: number
+  }
+  const [audioJobs, setAudioJobs] = useState<Record<string, AudioJobUi>>({})
+  const audioPolls = useRef<Record<string, ReturnType<typeof setInterval>>>({})
+
+  useEffect(() => () => {
+    Object.values(audioPolls.current).forEach(clearInterval)
+  }, [])
+
+  const clearAudioPoll = (lessonId: string) => {
+    if (audioPolls.current[lessonId]) {
+      clearInterval(audioPolls.current[lessonId])
+      delete audioPolls.current[lessonId]
+    }
+  }
+
+  const pollAudio = (lessonId: string, jobId: string) => {
+    clearAudioPoll(lessonId)
+    audioPolls.current[lessonId] = setInterval(async () => {
+      try {
+        const s = await getAudioStatus(jobId)
+        setAudioJobs(p => ({
+          ...p,
+          [lessonId]: {
+            jobId,
+            status: s.status === 'pending' ? 'processing' : s.status,
+            progress: s.progress,
+            total: s.total_sections,
+            completed: s.completed_sections,
+          },
+        }))
+        if (s.status === 'done' || s.status === 'error') {
+          clearAudioPoll(lessonId)
+          if (s.status === 'done') {
+            const failed = s.results.filter(r => r.error).length
+            if (failed > 0) toast.error(`Audio généré · ${failed} section(s) en échec`)
+            else toast.success(`Audio généré · ${s.completed_sections} section(s) 🎧`)
+          } else {
+            toast.error(s.error || 'Échec de la génération audio')
+          }
+          setTimeout(() => setAudioJobs(p => {
+            const n = { ...p }; delete n[lessonId]; return n
+          }), 4500)
+        }
+      } catch (e) {
+        clearAudioPoll(lessonId)
+        toast.error(e instanceof Error ? e.message : 'Erreur de statut audio')
+        setAudioJobs(p => { const n = { ...p }; delete n[lessonId]; return n })
+      }
+    }, 2000)
+  }
+
+  const startAudioGeneration = async (lesson: Lesson) => {
+    setAudioJobs(p => ({
+      ...p,
+      [lesson.id]: { jobId: '', status: 'processing', progress: 'Démarrage…', total: 0, completed: 0 },
+    }))
+    try {
+      const { job_id } = await generateAudio(lesson.id)
+      setAudioJobs(p => ({ ...p, [lesson.id]: { ...p[lesson.id], jobId: job_id } }))
+      pollAudio(lesson.id, job_id)
+    } catch (e) {
+      setAudioJobs(p => { const n = { ...p }; delete n[lesson.id]; return n })
+      toast.error(e instanceof Error ? e.message : 'Erreur')
+    }
+  }
+
+  // Régénération de l'audio d'une seule section (depuis la modale Contenu)
+  const [regenBusy, setRegenBusy] = useState(false)
+  const regenerateSectionAudio = async () => {
+    if (!contentSubLesson || !existingContentId) return
+    setRegenBusy(true)
+    try {
+      const { job_id } = await regenerateAudio(contentSubLesson.lessonId, existingContentId)
+      const poll = setInterval(async () => {
+        try {
+          const s = await getAudioStatus(job_id)
+          if (s.status === 'done' || s.status === 'error') {
+            clearInterval(poll)
+            setRegenBusy(false)
+            if (s.status === 'error') { toast.error(s.error || 'Échec de la génération'); return }
+            const r = s.results.find(x => x.content_id === existingContentId)
+            if (r?.error) { toast.error(`Échec : ${r.error}`); return }
+            if (r?.audio_url) setContentForm(f => ({ ...f, audioUrl: r.audio_url! }))
+            toast.success('Audio régénéré 🎧')
+          }
+        } catch (e) {
+          clearInterval(poll)
+          setRegenBusy(false)
+          toast.error(e instanceof Error ? e.message : 'Erreur de statut audio')
+        }
+      }, 2000)
+    } catch (e) {
+      setRegenBusy(false)
+      toast.error(e instanceof Error ? e.message : 'Erreur')
+    }
+  }
 
   // ── États modaux ──────────────────────────────────────────────────────────
 
@@ -486,6 +591,27 @@ export default function ModuleDetailPage() {
                                   <span className="text-xs text-gray-400 ml-1">({subLessonsMap[lesson.id]?.length ?? '?'} sous-leçon{subLessonsMap[lesson.id]?.length !== 1 ? 's' : ''})</span>
                                 </button>
                                 <div className="flex items-center gap-1">
+                                  {audioJobs[lesson.id] ? (
+                                    <span className="flex items-center gap-1.5 px-2 text-xs text-indigo-600">
+                                      {audioJobs[lesson.id].status === 'error'
+                                        ? <X className="w-3.5 h-3.5 text-red-500" />
+                                        : <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                                      <span className="max-w-[180px] truncate">
+                                        {audioJobs[lesson.id].progress || 'Génération…'}
+                                        {audioJobs[lesson.id].total > 0 &&
+                                          ` (${audioJobs[lesson.id].completed}/${audioJobs[lesson.id].total})`}
+                                      </span>
+                                    </span>
+                                  ) : (
+                                    <Button
+                                      variant="ghost" size="icon-sm"
+                                      title="Générer la narration audio (IA)"
+                                      className="text-indigo-500 hover:text-indigo-700"
+                                      onClick={() => startAudioGeneration(lesson)}
+                                    >
+                                      <Headphones className="w-3.5 h-3.5" />
+                                    </Button>
+                                  )}
                                   <Button variant="ghost" size="icon-sm" onClick={() => openEditLesson(lesson)}><Pencil className="w-3 h-3" /></Button>
                                   <AlertDialog>
                                     <AlertDialogTrigger asChild>
@@ -870,7 +996,19 @@ export default function ModuleDetailPage() {
                   placeholder="https://cdn.example.com/audio/lecon-01-fr.mp3"
                   className="font-mono text-xs"
                 />
-                <p className="text-xs text-gray-400 mt-1">Format : MP3, OGG ou WAV hébergé sur un CDN</p>
+                <div className="flex items-center justify-between mt-1.5 gap-2">
+                  <p className="text-xs text-gray-400">Format : MP3, OGG ou WAV hébergé sur un CDN</p>
+                  <Button
+                    type="button" variant="outline" size="sm"
+                    className="gap-1.5 h-7 text-xs text-indigo-600 border-indigo-200 hover:bg-indigo-50 flex-shrink-0"
+                    disabled={!existingContentId || regenBusy}
+                    title={existingContentId ? 'Générer la narration de cette section via l’IA' : 'Enregistrez d’abord le contenu'}
+                    onClick={regenerateSectionAudio}
+                  >
+                    {regenBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Headphones className="w-3.5 h-3.5" />}
+                    {regenBusy ? 'Génération…' : 'Régénérer l’audio (IA)'}
+                  </Button>
+                </div>
               </div>
 
               {/* Durée de lecture */}
