@@ -3,17 +3,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import api from './api'
+import { pipelineFetch, pipelineAvailable } from './pipeline'
+
+export { pipelineAvailable }
 import type { ExpressLesson } from '@/types'
 
-const PIPELINE_URL = process.env.NEXT_PUBLIC_PIPELINE_URL || 'http://localhost:8000'
 
-/**
- * Génération par l'IA disponible ? En production, le pipeline n'est pas
- * déployé : sans NEXT_PUBLIC_PIPELINE_URL on n'affiche que la rédaction à la
- * main (en local, le pipeline tourne sur localhost:8000).
- */
-export const pipelineAvailable =
-  Boolean(process.env.NEXT_PUBLIC_PIPELINE_URL) || process.env.NODE_ENV === 'development'
 
 const unwrap = <T,>(res: { data: unknown }): T => {
   const d = res.data as { data?: T }
@@ -56,7 +51,7 @@ export interface ExpressPreview {
 }
 
 export async function generateExpress(subLessonId: string): Promise<{ job_id: string }> {
-  const res = await fetch(`${PIPELINE_URL}/express/generate`, {
+  const res = await pipelineFetch(`/express/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sub_lesson_id: subLessonId }),
@@ -66,13 +61,13 @@ export async function generateExpress(subLessonId: string): Promise<{ job_id: st
 }
 
 export async function previewExpress(jobId: string): Promise<ExpressPreview> {
-  const res = await fetch(`${PIPELINE_URL}/express/preview/${jobId}`)
+  const res = await pipelineFetch(`/express/preview/${jobId}`)
   if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
 
 export async function commitExpress(jobId: string): Promise<{ express_id: string }> {
-  const res = await fetch(`${PIPELINE_URL}/express/commit/${jobId}`, { method: 'POST' })
+  const res = await pipelineFetch(`/express/commit/${jobId}`, { method: 'POST' })
   if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
