@@ -13,6 +13,24 @@ export interface User {
   level?: number
 }
 
+/** Valeurs réelles de users.profileType côté API. */
+export type ProfileType = 'apprentissage' | 'chauffeur' | 'agent_routier' | 'auto_ecole' | 'admin'
+
+/** Utilisateur tel que renvoyé par GET /admin/users. */
+export interface AdminUser {
+  id: string
+  phone: string
+  firstName: string | null
+  lastName: string | null
+  region: string | null
+  profileType: ProfileType
+  avatarUrl: string | null
+  isActive: boolean
+  createdAt: string
+  completedLessons: number
+  lastSeenAt: string | null
+}
+
 export interface LearningModule {
   id: string
   title: string

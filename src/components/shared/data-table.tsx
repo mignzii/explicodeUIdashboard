@@ -34,6 +34,13 @@ interface DataTableProps<TData, TValue> {
   searchable?: boolean
   searchPlaceholder?: string
   toolbar?: React.ReactNode
+  /** Pagination faite par le serveur : la table affiche la page reçue telle quelle. */
+  serverPagination?: {
+    page: number
+    pageSize: number
+    total: number
+    onChange: (page: number, pageSize: number) => void
+  }
 }
 
 export function DataTable<TData, TValue>({
@@ -43,6 +50,7 @@ export function DataTable<TData, TValue>({
   searchable = true,
   searchPlaceholder = 'Rechercher...',
   toolbar,
+  serverPagination,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -66,7 +74,22 @@ export function DataTable<TData, TValue>({
     initialState: {
       pagination: { pageSize: 10 },
     },
+    ...(serverPagination && {
+      manualPagination: true,
+      pageCount: Math.max(1, Math.ceil(serverPagination.total / serverPagination.pageSize)),
+    }),
   })
+
+  const pageIndex = serverPagination ? serverPagination.page - 1 : table.getState().pagination.pageIndex
+  const pageSize = serverPagination ? serverPagination.pageSize : table.getState().pagination.pageSize
+  const pageCount = table.getPageCount()
+  const resultCount = serverPagination ? serverPagination.total : table.getFilteredRowModel().rows.length
+  const canPrevious = serverPagination ? pageIndex > 0 : table.getCanPreviousPage()
+  const canNext = serverPagination ? pageIndex + 1 < pageCount : table.getCanNextPage()
+  const goTo = (index: number) =>
+    serverPagination ? serverPagination.onChange(index + 1, pageSize) : table.setPageIndex(index)
+  const changePageSize = (size: number) =>
+    serverPagination ? serverPagination.onChange(1, size) : table.setPageSize(size)
 
   return (
     <div className="space-y-4">
@@ -163,8 +186,8 @@ export function DataTable<TData, TValue>({
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <span>Lignes par page:</span>
           <Select
-            value={String(table.getState().pagination.pageSize)}
-            onValueChange={(val) => table.setPageSize(Number(val))}
+            value={String(pageSize)}
+            onValueChange={(val) => changePageSize(Number(val))}
           >
             <SelectTrigger className="h-8 w-16">
               <SelectValue />
@@ -179,22 +202,22 @@ export function DataTable<TData, TValue>({
 
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <span>
-            Page {table.getState().pagination.pageIndex + 1} sur {table.getPageCount()}
-            {' '}({table.getFilteredRowModel().rows.length} résultats)
+            Page {pageIndex + 1} sur {Math.max(1, pageCount)}
+            {' '}({resultCount} résultat{resultCount > 1 ? 's' : ''})
           </span>
           <Button
             variant="outline"
             size="icon-sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            onClick={() => goTo(pageIndex - 1)}
+            disabled={!canPrevious}
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <Button
             variant="outline"
             size="icon-sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={() => goTo(pageIndex + 1)}
+            disabled={!canNext}
           >
             <ChevronRight className="w-4 h-4" />
           </Button>
