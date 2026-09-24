@@ -26,6 +26,7 @@ import {
   ChevronRight,
   LayoutGrid,
   ClipboardList,
+  Megaphone,
 } from 'lucide-react'
 
 interface NavItem {
@@ -74,6 +75,7 @@ const navSections: NavSection[] = [
     items: [
       { label: 'Publications', href: '/community', icon: MessageSquare },
       { label: 'Emplois', href: '/jobs', icon: Briefcase },
+      { label: 'Annonces', href: '/announcements', icon: Megaphone },
     ],
   },
   {
