@@ -18,6 +18,8 @@ type Step = 'upload' | 'processing' | 'preview' | 'done'
 
 const MODULE_COLOR = '#6366f1'
 
+const MATCH_ICON: Record<string, string> = { code: '⚡', visual: '◉', sequential: '↕' }
+
 export default function PipelinePage() {
   const [step, setStep] = useState<Step>('upload')
 
@@ -171,7 +173,7 @@ export default function PipelinePage() {
               <Label>
                 Images des panneaux{' '}
                 <span className="text-gray-400 font-normal text-xs">
-                  (numérotées 01_B3.png ou simplement B3.png — le matching est automatique)
+                  (panneaux nommés B3.png, ou captures des diapos Diapositive1.JPG… — le rapprochement avec les pages est automatique)
                 </span>
               </Label>
               <Input
@@ -305,8 +307,8 @@ export default function PipelinePage() {
                           <p className="text-[10px] text-slate-600 truncate flex items-center gap-1 mt-0.5">
                             {sl.image_filename ? (
                               <>
-                                <span className={sl.match_method === 'code' ? 'text-emerald-600' : 'text-slate-600'}>
-                                  {sl.match_method === 'code' ? '⚡' : '↕'}
+                                <span className={sl.match_method === 'sequential' ? 'text-slate-600' : 'text-emerald-600'}>
+                                  {MATCH_ICON[sl.match_method] ?? '↕'}
                                 </span>
                                 {sl.image_filename}
                               </>
@@ -347,6 +349,9 @@ export default function PipelinePage() {
                 <div className="flex items-center gap-4 px-5 py-2 border-t border-white/5 bg-[#0a0f1a] flex-shrink-0">
                   <div className="flex items-center gap-1.5 text-xs text-slate-600">
                     <span className="text-emerald-600">⚡</span> Matched par code
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                    <span className="text-emerald-600">◉</span> Reconnue visuellement
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-slate-600">
                     <span>↕</span> Séquentiel
