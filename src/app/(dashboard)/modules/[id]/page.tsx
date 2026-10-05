@@ -364,6 +364,24 @@ export default function ModuleDetailPage() {
     }
   }
 
+  const [uploadingAudio, setUploadingAudio] = useState(false)
+  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingAudio(true)
+    try {
+      const { url } = await uploadsApi.lessonAudio(file)
+      setContentForm(f => ({ ...f, audioUrl: url }))
+      toast.success(`Audio ${contentLang} uploadé — pensez à enregistrer`)
+    } catch (err) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      toast.error(msg || "Échec de l'upload audio (MP3, 25 Mo max)")
+    } finally {
+      setUploadingAudio(false)
+      e.target.value = ''
+    }
+  }
+
   const saveSub = async () => {
     if (!subForm.title.trim()) { toast.error('Titre requis'); return }
     setSaving(true)
@@ -997,7 +1015,13 @@ export default function ModuleDetailPage() {
                   className="font-mono text-xs"
                 />
                 <div className="flex items-center justify-between mt-1.5 gap-2">
-                  <p className="text-xs text-gray-400">Format : MP3, OGG ou WAV hébergé sur un CDN</p>
+                  <p className="text-xs text-gray-400">Uploadez un MP3 (25 Mo max) ou collez une URL</p>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <label className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md border text-xs font-medium cursor-pointer text-emerald-700 border-emerald-200 hover:bg-emerald-50 ${uploadingAudio ? 'opacity-60 pointer-events-none' : ''}`}>
+                    {uploadingAudio ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                    {uploadingAudio ? 'Upload…' : 'Uploader un MP3'}
+                    <input type="file" accept="audio/mpeg,.mp3" className="hidden" onChange={handleAudioUpload} disabled={uploadingAudio} />
+                  </label>
                   <Button
                     type="button" variant="outline" size="sm"
                     className="gap-1.5 h-7 text-xs text-indigo-600 border-indigo-200 hover:bg-indigo-50 flex-shrink-0"
@@ -1008,7 +1032,11 @@ export default function ModuleDetailPage() {
                     {regenBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Headphones className="w-3.5 h-3.5" />}
                     {regenBusy ? 'Génération…' : 'Régénérer l’audio (IA)'}
                   </Button>
+                  </div>
                 </div>
+                {contentForm.audioUrl && (
+                  <audio controls src={contentForm.audioUrl} className="w-full h-9 mt-2" />
+                )}
               </div>
 
               {/* Durée de lecture */}

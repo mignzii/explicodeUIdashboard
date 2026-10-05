@@ -110,6 +110,15 @@ export const uploadsApi = {
     })
     return (res.data?.data ?? res.data) as { url: string }
   },
+  lessonAudio: async (file: File): Promise<{ url: string }> => {
+    const form = new FormData()
+    form.append('audio', file)
+    const res = await api.post('/uploads/lesson-audio', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000,
+    })
+    return (res.data?.data ?? res.data) as { url: string }
+  },
 }
 
 // ── Content ───────────────────────────────────────────────────────────────
