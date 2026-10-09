@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
+  <!-- Panneau de service « Point d'information » (type CE3) : fond bleu,
+       listel blanc, cartouche blanc portant un « i » noir. -->
+  <rect x="6" y="6" width="588" height="588" rx="42" fill="#fff" stroke="#b5b5b5" stroke-width="4"/>
+  <rect x="24" y="24" width="552" height="552" rx="28" fill="#2152a5"/>
+  <rect x="96" y="96" width="408" height="408" rx="12" fill="#fff"/>
+  <circle cx="300" cy="182" r="44" fill="#1a1a1a"/>
+  <path d="M232 262h118v176h40v42H214v-42h40V304h-22z" fill="#1a1a1a"/>
+</svg>

@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { LearningModule, CreateModulePayload } from '@/types'
 import { modulesApi, uploadsApi } from '@/lib/learningApi'
+import { moduleSignUrl } from '@/lib/moduleSigns'
 import { ModulePreviewModal } from '@/components/ModulePreviewModal'
 import toast from 'react-hot-toast'
 
@@ -175,6 +176,10 @@ export default function ModulesPage() {
                     {mod.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={mod.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                    ) : moduleSignUrl(mod.title) ? (
+                      // Panneau que l'app affiche tant qu'aucune photo n'est choisie.
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={moduleSignUrl(mod.title)!} alt="" title="Panneau actuel dans l'app" className="w-10 h-10 object-contain" />
                     ) : (
                       <span className="text-3xl">{mod.icon}</span>
                     )}
@@ -273,7 +278,15 @@ export default function ModulesPage() {
                   </Button>
                 </div>
               ) : (
-                <label className="mt-1 flex flex-col items-center justify-center h-24 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50">
+                <div className="mt-1 flex items-center gap-3">
+                {moduleSignUrl(form.title) && (
+                  <div className="shrink-0 text-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={moduleSignUrl(form.title)!} alt="Panneau actuel" className="w-20 h-20 object-contain" />
+                    <p className="text-[10px] text-gray-400">Actuel dans l&apos;app</p>
+                  </div>
+                )}
+                <label className="flex-1 flex flex-col items-center justify-center h-24 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50">
                   {uploadingImage ? (
                     <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
                   ) : (
@@ -282,6 +295,7 @@ export default function ModulesPage() {
                   <input type="file" className="hidden" accept="image/jpeg,image/png,image/webp,image/gif"
                     onChange={handleImageUpload} disabled={uploadingImage} />
                 </label>
+                </div>
               )}
               <p className="mt-1 text-xs text-gray-400">Sans photo, l&apos;app garde le panneau habituel du module.</p>
             </div>
