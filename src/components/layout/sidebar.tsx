@@ -28,6 +28,7 @@ import {
   ClipboardList,
   Cpu,
   Megaphone,
+  Quote,
 } from 'lucide-react'
 
 interface NavItem {
@@ -77,6 +78,7 @@ const navSections: NavSection[] = [
       { label: 'Publications', href: '/community', icon: MessageSquare },
       { label: 'Emplois', href: '/jobs', icon: Briefcase },
       { label: 'Annonces', href: '/announcements', icon: Megaphone },
+      { label: 'Pensées', href: '/thoughts', icon: Quote },
     ],
   },
   {

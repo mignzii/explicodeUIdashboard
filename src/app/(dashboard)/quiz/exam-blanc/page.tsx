@@ -33,6 +33,8 @@ interface ExamBlancForm {
   questionCount: number
   durationMinutes: number
   passingScore: number
+  /** Vide = à la suite des niveaux existants (nouvel examen). */
+  level: string
   categoryIds: string[]
   isActive: boolean
   // CUSTOM mode
@@ -46,6 +48,7 @@ const DEFAULT_FORM: ExamBlancForm = {
   questionCount: 40,
   durationMinutes: 40,
   passingScore: 70,
+  level: '',
   categoryIds: [],
   isActive: true,
   selectedQuestionIds: [],
@@ -114,6 +117,7 @@ export default function ExamBlancPage() {
       questionCount: eb.questionCount,
       durationMinutes: eb.durationMinutes,
       passingScore: eb.passingScore,
+      level: String(eb.level ?? 0),
       categoryIds: eb.categoryIds ?? [],
       isActive: eb.isActive,
       selectedQuestionIds: eb.questions?.map(q => q.questionId) ?? [],
@@ -139,6 +143,7 @@ export default function ExamBlancPage() {
         questionCount: form.mode === 'random' ? form.questionCount : form.selectedQuestionIds.length,
         durationMinutes: form.durationMinutes,
         passingScore: form.passingScore,
+        level: form.level.trim() === '' ? undefined : Math.max(0, parseInt(form.level, 10) || 0),
         categoryIds: form.mode === 'random' && form.categoryIds.length > 0 ? form.categoryIds : undefined,
         questionIds: form.mode === 'custom' ? form.selectedQuestionIds : undefined,
         isActive: form.isActive,
@@ -211,6 +216,13 @@ export default function ExamBlancPage() {
             <p className="text-xs text-gray-400 truncate max-w-xs">{row.original.description}</p>
           )}
         </div>
+      ),
+    },
+    {
+      accessorKey: 'level',
+      header: 'Niveau',
+      cell: ({ row }) => (
+        <span className="text-sm font-semibold text-gray-700">{row.original.level > 0 ? row.original.level : '—'}</span>
       ),
     },
     {
@@ -465,6 +477,20 @@ export default function ExamBlancPage() {
                   </div>
                 </div>
               )}
+              <div>
+                <Label className="text-sm font-semibold">Niveau</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  placeholder="À la suite"
+                  value={form.level}
+                  onChange={e => setForm(f => ({ ...f, level: e.target.value }))}
+                  className="mt-1"
+                />
+                <p className="mt-1 text-xs text-gray-400">
+                  Le niveau N+1 s’ouvre quand le niveau N est réussi. Vide : l’examen passe en dernier.
+                </p>
+              </div>
               <div>
                 <Label className="text-sm font-semibold">Durée (minutes)</Label>
                 <Input

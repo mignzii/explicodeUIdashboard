@@ -28,6 +28,7 @@ const pageNames: Record<string, string> = {
   '/infractions/reports': 'Signalements d\'infractions',
   '/community': 'Communauté',
   '/jobs': 'Offres d\'emploi',
+  '/thoughts': 'Pensées',
   '/documents': 'Documents',
   '/adr': 'Codes ADR',
   '/progression': 'Analyse & Progression',

@@ -17,7 +17,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { LearningModule, CreateModulePayload } from '@/types'
-import { modulesApi } from '@/lib/learningApi'
+import { modulesApi, uploadsApi } from '@/lib/learningApi'
 import { ModulePreviewModal } from '@/components/ModulePreviewModal'
 import toast from 'react-hot-toast'
 
@@ -25,6 +25,7 @@ interface ModuleForm {
   title: string
   icon: string
   color: string
+  imageUrl: string
   order: number
   isLocked: boolean
 }
@@ -33,6 +34,7 @@ const DEFAULT_FORM: ModuleForm = {
   title: '',
   icon: '📚',
   color: '#1B4FD8',
+  imageUrl: '',
   order: 1,
   isLocked: false,
 }
@@ -46,6 +48,7 @@ export default function ModulesPage() {
   const [editingModule, setEditingModule] = useState<LearningModule | null>(null)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState<ModuleForm>(DEFAULT_FORM)
+  const [uploadingImage, setUploadingImage] = useState(false)
   const [previewId, setPreviewId] = useState<string | null>(null)
   const previewMod = modules.find(m => m.id === previewId)
 
@@ -73,15 +76,32 @@ export default function ModulesPage() {
 
   const openEdit = (mod: LearningModule) => {
     setEditingModule(mod)
-    setForm({ title: mod.title, icon: mod.icon, color: mod.color, order: mod.order, isLocked: mod.isLocked })
+    setForm({ title: mod.title, icon: mod.icon, color: mod.color, imageUrl: mod.imageUrl ?? '', order: mod.order, isLocked: mod.isLocked })
     setIsModalOpen(true)
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setUploadingImage(true)
+    try {
+      const { url } = await uploadsApi.lessonImage(file)
+      setForm(f => ({ ...f, imageUrl: url }))
+      toast.success('Photo envoyée — pensez à sauvegarder')
+    } catch {
+      toast.error("Échec de l'envoi (JPEG, PNG, WebP ou GIF, 5 Mo max)")
+    } finally {
+      setUploadingImage(false)
+    }
   }
 
   const handleSave = async () => {
     if (!form.title.trim()) { toast.error('Le titre est requis'); return }
     setSaving(true)
     try {
-      const payload: CreateModulePayload = form
+      // Chaîne vide = pas de photo : null efface l'ancienne côté serveur.
+      const payload: CreateModulePayload = { ...form, imageUrl: form.imageUrl.trim() || null }
       if (editingModule) {
         const updated = await modulesApi.update(editingModule.id, payload) as LearningModule
         setModules(prev => prev.map(m => m.id === editingModule.id ? updated : m))
@@ -152,7 +172,12 @@ export default function ModulesPage() {
               <div className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-3xl">{mod.icon}</span>
+                    {mod.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={mod.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                    ) : (
+                      <span className="text-3xl">{mod.icon}</span>
+                    )}
                     <p className="text-xs text-gray-400 font-medium">#{mod.order}</p>
                   </div>
                   {mod.isLocked && <Lock className="w-4 h-4 text-gray-400" />}
@@ -235,6 +260,30 @@ export default function ModulesPage() {
                   </button>
                 ))}
               </div>
+            </div>
+            <div>
+              <Label>Photo sur l&apos;accueil de l&apos;app</Label>
+              {form.imageUrl ? (
+                <div className="mt-1 relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={form.imageUrl} alt="Photo du module" className="rounded-lg w-full h-36 object-cover border" />
+                  <Button type="button" variant="secondary" size="sm" className="absolute top-2 right-2"
+                    onClick={() => setForm(f => ({ ...f, imageUrl: '' }))}>
+                    Retirer
+                  </Button>
+                </div>
+              ) : (
+                <label className="mt-1 flex flex-col items-center justify-center h-24 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50">
+                  {uploadingImage ? (
+                    <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                  ) : (
+                    <span className="text-xs text-gray-500">Cliquez pour choisir une photo</span>
+                  )}
+                  <input type="file" className="hidden" accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleImageUpload} disabled={uploadingImage} />
+                </label>
+              )}
+              <p className="mt-1 text-xs text-gray-400">Sans photo, l&apos;app garde le panneau habituel du module.</p>
             </div>
             <div>
               <Label>Couleur</Label>

@@ -11,6 +11,7 @@ export interface CreateModulePayload {
   title: string
   icon?: string
   color?: string
+  imageUrl?: string | null
   order?: number
   isLocked?: boolean
 }

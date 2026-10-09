@@ -36,6 +36,7 @@ export interface LearningModule {
   title: string
   icon: string
   color: string
+  imageUrl?: string | null
   order: number
   isLocked: boolean
   categories?: Category[]
@@ -129,6 +130,7 @@ export interface CreateModulePayload {
   title: string
   icon?: string
   color?: string
+  imageUrl?: string | null
   order?: number
   isLocked?: boolean
 }
@@ -225,6 +227,8 @@ export interface ExamBlanc {
   questionCount: number
   durationMinutes: number
   passingScore: number
+  /** Rang du niveau : le niveau N+1 s'ouvre quand le niveau N est réussi (0 = non classé). */
+  level: number
   categoryIds: string[]
   isActive: boolean
   questions?: ExamBlancQuestion[]
@@ -297,6 +301,7 @@ export interface CreateExamBlancPayload {
   questionCount?: number
   durationMinutes?: number
   passingScore?: number
+  level?: number
   categoryIds?: string[]
   questionIds?: string[]
   isActive?: boolean
