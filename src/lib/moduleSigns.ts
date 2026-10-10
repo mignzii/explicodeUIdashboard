@@ -26,3 +26,33 @@ export function moduleSignUrl(title: string): string | null {
   const hit = MODULE_SIGNS.find(([keyword]) => t.includes(keyword))
   return hit ? `/signs/${hit[1]}.svg` : null
 }
+
+// Panneau évoqué par un titre de leçon : miroir de RoadSigns.forText (même ordre).
+const TOPIC_SIGNS: [keyword: string, file: string][] = [
+  ['succession', 'succession_virages_gauche'],
+  ['priorite a droite', 'priorite_a_droite'],
+  ['rond-point', 'rond_point'],
+  ['giratoire', 'rond_point'],
+  ['carrefour', 'rond_point'],
+  ['intersection', 'rond_point'],
+  ['stationn', 'stationnement_interdit'],
+  ['garer', 'stationnement_interdit'],
+  ['depass', 'depassement_interdit'],
+  ['obligation', 'conduite_pratique'],
+  ['stop', 'code_de_la_route'],
+  ['cedez', 'regles_de_conduite'],
+  ['ceder', 'regles_de_conduite'],
+  ['priorite', 'regles_de_conduite'],
+  ['vitesse', 'securite_routiere'],
+  ['secours', 'premiers_secours'],
+  ['virage', 'signalisation_routiere'],
+  ['triangul', 'signalisation_routiere'],
+  ['danger', 'signalisation_routiere'],
+]
+
+/** Panneau de l'app pour une leçon : celui de son titre, à défaut celui de son module. */
+export function lessonSignUrl(lessonTitle: string, moduleTitle: string): string | null {
+  const t = normalize(lessonTitle)
+  const hit = TOPIC_SIGNS.find(([keyword]) => t.includes(keyword))
+  return hit ? `/signs/${hit[1]}.svg` : moduleSignUrl(moduleTitle)
+}

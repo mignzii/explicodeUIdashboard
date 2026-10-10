@@ -67,6 +67,7 @@ export interface Lesson {
   icon?: string
   iconColor?: string
   iconBg?: string
+  imageUrl?: string | null
   subLessonsCount?: number
   progress?: number
   subLessons?: SubLesson[]

@@ -30,6 +30,7 @@ export interface CreateLessonPayload {
   icon?: string
   iconColor?: string
   iconBg?: string
+  imageUrl?: string | null
 }
 
 export interface CreateSubLessonPayload {

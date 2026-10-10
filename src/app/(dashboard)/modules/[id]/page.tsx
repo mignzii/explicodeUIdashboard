@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { LearningModule, Category, Lesson, SubLesson, LessonContent } from '@/types'
 import ExpressPanel from '@/components/express/ExpressPanel'
+import { lessonSignUrl } from '@/lib/moduleSigns'
 import { modulesApi, categoriesApi, lessonsApi, subLessonsApi, contentApi, uploadsApi } from '@/lib/learningApi'
 import { generateAudio, getAudioStatus, regenerateAudio } from '@/lib/pipelineApi'
 import { ModulePreviewModal } from '@/components/ModulePreviewModal'
@@ -178,8 +179,9 @@ export default function ModuleDetailPage() {
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null)
   const [lessonForm, setLessonForm] = useState({
     title: '', order: 1, isLocked: false,
-    icon: '📖', iconColor: '#1B4FD8', iconBg: '#EEF2FF',
+    icon: '📖', iconColor: '#1B4FD8', iconBg: '#EEF2FF', imageUrl: '',
   })
+  const [uploadingLessonImage, setUploadingLessonImage] = useState(false)
 
   const [subModal, setSubModal] = useState(false)
   const [subLessonParentId, setSubLessonParentId] = useState('')
@@ -290,7 +292,7 @@ export default function ModuleDetailPage() {
   const openCreateLesson = (categoryId: string) => {
     setLessonCategoryId(categoryId); setEditingLesson(null)
     const n = (lessonsMap[categoryId] ?? []).length
-    setLessonForm({ title: '', order: n + 1, isLocked: false, icon: '📖', iconColor: '#1B4FD8', iconBg: '#EEF2FF' })
+    setLessonForm({ title: '', order: n + 1, isLocked: false, icon: '📖', iconColor: '#1B4FD8', iconBg: '#EEF2FF', imageUrl: '' })
     setLessonModal(true)
   }
 
@@ -299,8 +301,25 @@ export default function ModuleDetailPage() {
     setLessonForm({
       title: lesson.title, order: lesson.order, isLocked: lesson.isLocked,
       icon: lesson.icon ?? '📖', iconColor: lesson.iconColor ?? '#1B4FD8', iconBg: lesson.iconBg ?? '#EEF2FF',
+      imageUrl: lesson.imageUrl ?? '',
     })
     setLessonModal(true)
+  }
+
+  const handleLessonImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setUploadingLessonImage(true)
+    try {
+      const { url } = await uploadsApi.lessonImage(file)
+      setLessonForm(f => ({ ...f, imageUrl: url }))
+      toast.success('Photo envoyée — pensez à enregistrer')
+    } catch {
+      toast.error("Échec de l'envoi (JPEG, PNG, WebP ou GIF, 5 Mo max)")
+    } finally {
+      setUploadingLessonImage(false)
+    }
   }
 
   const saveLesson = async () => {
@@ -308,12 +327,14 @@ export default function ModuleDetailPage() {
     setSaving(true)
     try {
       const { title, order, isLocked, icon, iconColor, iconBg } = lessonForm
+      // Chaîne vide = pas de photo : null efface l'ancienne côté serveur.
+      const imageUrl = lessonForm.imageUrl.trim() || null
       if (editingLesson) {
-        const updated = await lessonsApi.update(editingLesson.id, { title, order, isLocked, icon, iconColor, iconBg }) as Lesson
+        const updated = await lessonsApi.update(editingLesson.id, { title, order, isLocked, icon, iconColor, iconBg, imageUrl }) as Lesson
         setLessonsMap(prev => ({ ...prev, [lessonCategoryId]: (prev[lessonCategoryId] ?? []).map(l => l.id === editingLesson.id ? updated : l) }))
         toast.success('Leçon mise à jour')
       } else {
-        const created = await lessonsApi.create({ categoryId: lessonCategoryId, title, order, isLocked, icon, iconColor, iconBg }) as Lesson
+        const created = await lessonsApi.create({ categoryId: lessonCategoryId, title, order, isLocked, icon, iconColor, iconBg, imageUrl }) as Lesson
         setLessonsMap(prev => ({ ...prev, [lessonCategoryId]: [...(prev[lessonCategoryId] ?? []), created] }))
         toast.success('Leçon créée')
       }
@@ -602,7 +623,16 @@ export default function ModuleDetailPage() {
                                     className="w-7 h-7 rounded-lg flex items-center justify-center text-base flex-shrink-0"
                                     style={{ backgroundColor: lesson.iconBg ?? '#F1F5F9' }}
                                   >
-                                    {lesson.icon ?? '📖'}
+                                    {lesson.imageUrl ? (
+                                      // eslint-disable-next-line @next/next/no-img-element
+                                      <img src={lesson.imageUrl} alt="" className="w-7 h-7 rounded-lg object-cover" />
+                                    ) : lessonSignUrl(lesson.title, module.title) ? (
+                                      // Panneau que l'app affiche tant qu'aucune photo n'est choisie.
+                                      // eslint-disable-next-line @next/next/no-img-element
+                                      <img src={lessonSignUrl(lesson.title, module.title)!} alt="" title="Panneau actuel dans l'app" className="w-6 h-6 object-contain" />
+                                    ) : (
+                                      lesson.icon ?? '📖'
+                                    )}
                                   </span>
                                   <span className="text-sm">{lesson.title}</span>
                                   {lesson.isLocked && <Lock className="w-3 h-3 text-amber-400" />}
@@ -799,6 +829,41 @@ export default function ModuleDetailPage() {
                   <Input value={lessonForm.iconBg} onChange={e => setLessonForm(f => ({ ...f, iconBg: e.target.value }))} placeholder="#EEF2FF" className="text-xs" />
                 </div>
               </div>
+            </div>
+
+            {/* Photo dans l'app */}
+            <div>
+              <Label>Photo dans l&apos;app</Label>
+              {lessonForm.imageUrl ? (
+                <div className="mt-1 relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={lessonForm.imageUrl} alt="Photo de la leçon" className="rounded-lg w-full h-32 object-cover border" />
+                  <Button type="button" variant="secondary" size="sm" className="absolute top-2 right-2"
+                    onClick={() => setLessonForm(f => ({ ...f, imageUrl: '' }))}>
+                    Retirer
+                  </Button>
+                </div>
+              ) : (
+                <div className="mt-1 flex items-center gap-3">
+                  {lessonSignUrl(lessonForm.title, module?.title ?? '') && (
+                    <div className="shrink-0 text-center">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={lessonSignUrl(lessonForm.title, module?.title ?? '')!} alt="Panneau actuel" className="w-16 h-16 object-contain" />
+                      <p className="text-[10px] text-gray-400">Actuel dans l&apos;app</p>
+                    </div>
+                  )}
+                  <label className="flex-1 flex flex-col items-center justify-center h-20 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50">
+                    {uploadingLessonImage ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                    ) : (
+                      <span className="text-xs text-gray-500">Cliquez pour choisir une photo</span>
+                    )}
+                    <input type="file" className="hidden" accept="image/jpeg,image/png,image/webp,image/gif"
+                      onChange={handleLessonImageUpload} disabled={uploadingLessonImage} />
+                  </label>
+                </div>
+              )}
+              <p className="mt-1 text-xs text-gray-400">Sans photo, l&apos;app garde le panneau habituel de la leçon.</p>
             </div>
 
             {/* Aperçu */}
