@@ -29,6 +29,7 @@ import {
   Cpu,
   Megaphone,
   Quote,
+  ShoppingBag,
 } from 'lucide-react'
 
 interface NavItem {
@@ -79,6 +80,12 @@ const navSections: NavSection[] = [
       { label: 'Emplois', href: '/jobs', icon: Briefcase },
       { label: 'Annonces', href: '/announcements', icon: Megaphone },
       { label: 'Pensées', href: '/thoughts', icon: Quote },
+    ],
+  },
+  {
+    title: 'BOUTIQUE',
+    items: [
+      { label: 'Livre officiel', href: '/shop', icon: ShoppingBag },
     ],
   },
   {
